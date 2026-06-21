@@ -1,0 +1,681 @@
+@using NguyenHoangNgocChauRazorPages.Services
+@{
+    var user = Context.Session.GetUser();
+    var role = user?.Role;
+    var currentPage = ViewContext.RouteData.Values["page"]?.ToString() ?? "";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - FUNews Management</title>
+    <meta name="description" content="FUNews Management System - FPT University internal news portal" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="~/css/site.css" />
+    <style>
+        /* ══════════════════════════════════════════
+           NAVBAR — FUNews Management System
+        ══════════════════════════════════════════ */
+
+        :root {
+            --nav-bg:        #0d2b4e;
+            --nav-border:    rgba(255,255,255,0.08);
+            --nav-accent:    #3b82f6;
+            --nav-text:      rgba(255,255,255,0.82);
+            --nav-text-hover:#ffffff;
+            --nav-active-bg: rgba(59,130,246,0.18);
+            --nav-pill-bg:   rgba(255,255,255,0.07);
+            --badge-admin:   #f59e0b;
+            --badge-staff:   #10b981;
+            --badge-lecturer:#8b5cf6;
+            --badge-guest:   #6b7280;
+        }
+
+        /* ── sticky navbar wrapper ── */
+        .fu-navbar {
+            position: sticky;
+            top: 0;
+            z-index: 1030;
+            background: var(--nav-bg);
+            border-bottom: 1px solid var(--nav-border);
+            box-shadow: 0 2px 16px rgba(0,0,0,0.28);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .fu-navbar .nav-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 1.25rem;
+            height: 62px;
+            display: flex;
+            align-items: center;
+            gap: 0;
+        }
+
+        /* ── Brand ── */
+        .fu-brand {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            text-decoration: none;
+            color: #fff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            letter-spacing: -0.2px;
+            flex-shrink: 0;
+            margin-right: 1.75rem;
+        }
+
+        .fu-brand:hover { color: #fff; opacity: 0.9; }
+
+        .fu-brand .brand-icon {
+            width: 34px;
+            height: 34px;
+            background: linear-gradient(135deg, #1a56db, #3b82f6);
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(26,86,219,0.45);
+        }
+
+        .fu-brand .brand-icon svg {
+            width: 18px; height: 18px; fill: white;
+        }
+
+        .fu-brand .brand-text span {
+            display: block;
+            font-size: 0.625rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.5);
+            letter-spacing: 0.05em;
+            text-transform: uppercase;
+            line-height: 1;
+        }
+
+        /* ── Nav links ── */
+        .fu-nav-links {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+            flex: 1;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .fu-nav-links .nav-item a {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            padding: 0.45rem 0.875rem;
+            border-radius: 8px;
+            color: var(--nav-text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: background 0.18s ease, color 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .fu-nav-links .nav-item a svg {
+            width: 15px; height: 15px; opacity: 0.8;
+            flex-shrink: 0;
+        }
+
+        .fu-nav-links .nav-item a:hover {
+            background: var(--nav-pill-bg);
+            color: var(--nav-text-hover);
+        }
+
+        .fu-nav-links .nav-item a.active {
+            background: var(--nav-active-bg);
+            color: var(--nav-accent);
+        }
+
+        .fu-nav-links .nav-item a.active svg { opacity: 1; }
+
+        /* ── Divider ── */
+        .nav-divider {
+            width: 1px;
+            height: 22px;
+            background: var(--nav-border);
+            margin: 0 0.5rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Right side user section ── */
+        .fu-nav-right {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-left: auto;
+            flex-shrink: 0;
+        }
+
+        /* Role badge */
+        .role-badge {
+            font-size: 0.65rem;
+            font-weight: 600;
+            letter-spacing: 0.06em;
+            text-transform: uppercase;
+            padding: 0.2rem 0.55rem;
+            border-radius: 999px;
+            color: #fff;
+        }
+
+        .role-badge.admin    { background: var(--badge-admin); }
+        .role-badge.staff    { background: var(--badge-staff); }
+        .role-badge.lecturer { background: var(--badge-lecturer); }
+        .role-badge.guest    { background: var(--badge-guest); }
+
+        /* User info pill */
+        .user-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+            background: var(--nav-pill-bg);
+            border: 1px solid var(--nav-border);
+            border-radius: 999px;
+            padding: 0.3rem 0.875rem 0.3rem 0.375rem;
+        }
+
+        .user-avatar {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1a56db, #7c3aed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .user-name {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #fff;
+            line-height: 1.2;
+            max-width: 130px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Logout button */
+        .btn-logout {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.4rem 0.875rem;
+            background: rgba(239,68,68,0.12);
+            border: 1px solid rgba(239,68,68,0.3);
+            border-radius: 8px;
+            color: #fca5a5;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .btn-logout svg { width: 14px; height: 14px; }
+
+        .btn-logout:hover {
+            background: rgba(239,68,68,0.22);
+            border-color: rgba(239,68,68,0.55);
+            color: #fecaca;
+        }
+
+        /* Login link */
+        .btn-nav-login {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.42rem 1.125rem;
+            background: linear-gradient(135deg, #1a56db, #2563eb);
+            border-radius: 8px;
+            color: #fff !important;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            text-decoration: none;
+            transition: opacity 0.18s ease, transform 0.15s ease;
+            box-shadow: 0 2px 8px rgba(26,86,219,0.4);
+        }
+
+        .btn-nav-login:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        /* ── Mobile hamburger ── */
+        .fu-toggler {
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            gap: 5px;
+            width: 36px;
+            height: 36px;
+            background: var(--nav-pill-bg);
+            border: 1px solid var(--nav-border);
+            border-radius: 8px;
+            cursor: pointer;
+            padding: 6px;
+            margin-left: auto;
+        }
+
+        .fu-toggler span {
+            display: block;
+            height: 2px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 2px;
+            transition: all 0.25s ease;
+        }
+
+        /* Mobile nav drawer */
+        .fu-mobile-menu {
+            display: none;
+            background: #0a2240;
+            border-top: 1px solid var(--nav-border);
+            padding: 0.75rem 1.25rem 1rem;
+        }
+
+        .fu-mobile-menu.open { display: block; }
+
+        .fu-mobile-menu a,
+        .fu-mobile-menu .btn-logout {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            padding: 0.6rem 0.75rem;
+            border-radius: 8px;
+            color: var(--nav-text);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            margin-bottom: 2px;
+            transition: background 0.15s;
+        }
+
+        .fu-mobile-menu a:hover { background: var(--nav-pill-bg); color: #fff; }
+
+        .fu-mobile-menu .mobile-divider {
+            border-top: 1px solid var(--nav-border);
+            margin: 0.6rem 0;
+        }
+
+        .fu-mobile-menu .mobile-user {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.6rem 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .fu-mobile-menu .mobile-user .user-avatar {
+            width: 36px; height: 36px; font-size: 0.875rem;
+        }
+
+        /* ── Responsive breakpoint ── */
+        @@media (max-width: 768px) {
+            .fu-nav-links,
+            .fu-nav-right,
+            .nav-divider { display: none !important; }
+            .fu-toggler  { display: flex; }
+        }
+
+        /* ── Main content area ── */
+        .fu-main {
+            min-height: calc(100vh - 62px);
+            background: #f4f6f9;
+        }
+
+        .fu-main .page-container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 2rem 1.25rem;
+        }
+
+        /* Override old .container from Bootstrap that was used before */
+        main.container {
+            max-width: 1280px;
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body>
+
+    <!-- ══════════════ NAVBAR ══════════════ -->
+    <header class="fu-navbar" id="fu-navbar">
+        <div class="nav-inner">
+
+            <!-- Brand Logo -->
+            <a asp-page="/News/Index" class="fu-brand" id="nav-brand">
+                <div class="brand-icon">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/>
+                    </svg>
+                </div>
+                <div class="brand-text">
+                    FUNews
+                    <span>Management System</span>
+                </div>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <ul class="fu-nav-links" id="fu-nav-links">
+
+                @if (role == "Admin")
+                {
+                    <!-- Admin menu -->
+                    <li class="nav-item">
+                        <a asp-page="/Admin/Accounts/Index"
+                           class="@(currentPage.StartsWith("/Admin/Accounts") ? "active" : "")"
+                           id="nav-admin-accounts">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                            Accounts
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-page="/Admin/Reports/Index"
+                           class="@(currentPage.StartsWith("/Admin/Reports") ? "active" : "")"
+                           id="nav-admin-reports">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/>
+                                <line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/>
+                            </svg>
+                            Reports
+                        </a>
+                    </li>
+                }
+                else if (role == "Staff")
+                {
+                    <!-- Staff menu -->
+                    <li class="nav-item">
+                        <a asp-page="/Staff/Categories/Index"
+                           class="@(currentPage.StartsWith("/Staff/Categories") ? "active" : "")"
+                           id="nav-staff-categories">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+                                <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                            </svg>
+                            Categories
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-page="/Staff/News/Index"
+                           class="@(currentPage.StartsWith("/Staff/News") ? "active" : "")"
+                           id="nav-staff-news">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2zM9 7h10M9 11h10M9 15h6"/>
+                            </svg>
+                            News Articles
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-page="/Staff/History/Index"
+                           class="@(currentPage.StartsWith("/Staff/History") ? "active" : "")"
+                           id="nav-staff-history">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/>
+                            </svg>
+                            History
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a asp-page="/Staff/Profile/Index"
+                           class="@(currentPage.StartsWith("/Staff/Profile") ? "active" : "")"
+                           id="nav-staff-profile">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                                <circle cx="12" cy="7" r="4"/>
+                            </svg>
+                            My Profile
+                        </a>
+                    </li>
+                }
+                else
+                {
+                    <!-- Lecturer / Guest menu -->
+                    <li class="nav-item">
+                        <a asp-page="/News/Index"
+                           class="@(currentPage.StartsWith("/News") ? "active" : "")"
+                           id="nav-news">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2zM9 7h10M9 11h10M9 15h6"/>
+                            </svg>
+                            News
+                        </a>
+                    </li>
+                }
+
+            </ul>
+
+            <!-- Desktop Right Side -->
+            <div class="fu-nav-right" id="fu-nav-right">
+
+                @if (user is null)
+                {
+                    <a asp-page="/Auth/Login" class="btn-nav-login" id="nav-login-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                            <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                        </svg>
+                        Sign In
+                    </a>
+                }
+                else
+                {
+                    <!-- User pill -->
+                    <div class="user-pill" id="nav-user-pill">
+                        <div class="user-avatar" title="@user.Name">
+                            @(user.Name.Length > 0 ? user.Name[0].ToString().ToUpper() : "?")
+                        </div>
+                        <div class="user-info">
+                            <span class="user-name">@user.Name</span>
+                            @{
+                                var badgeClass = role switch {
+                                    "Admin"    => "admin",
+                                    "Staff"    => "staff",
+                                    "Lecturer" => "lecturer",
+                                    _          => "guest"
+                                };
+                            }
+                            <span class="role-badge @badgeClass">@role</span>
+                        </div>
+                    </div>
+
+                    <!-- Logout -->
+                    <form method="post" asp-page="/Auth/Logout" style="margin:0" id="logout-form">
+                        <button type="submit" class="btn-logout" id="btn-logout">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                            </svg>
+                            Logout
+                        </button>
+                    </form>
+                }
+
+            </div>
+
+            <!-- Mobile Hamburger -->
+            <button class="fu-toggler" id="fu-toggler" aria-label="Toggle navigation" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+
+        </div><!-- /nav-inner -->
+
+        <!-- Mobile Drawer -->
+        <div class="fu-mobile-menu" id="fu-mobile-menu" aria-hidden="true">
+
+            @if (user is not null)
+            {
+                <div class="mobile-user">
+                    <div class="user-avatar">
+                        @(user.Name.Length > 0 ? user.Name[0].ToString().ToUpper() : "?")
+                    </div>
+                    <div>
+                        <div class="user-name">@user.Name</div>
+                        @{
+                            var mobileBadge = role switch {
+                                "Admin"    => "admin",
+                                "Staff"    => "staff",
+                                "Lecturer" => "lecturer",
+                                _          => "guest"
+                            };
+                        }
+                        <span class="role-badge @mobileBadge" style="font-size:0.6rem">@role</span>
+                    </div>
+                </div>
+                <div class="mobile-divider"></div>
+            }
+
+            @if (role == "Admin")
+            {
+                <a asp-page="/Admin/Accounts/Index" id="mobile-nav-accounts">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                    </svg>
+                    Accounts
+                </a>
+                <a asp-page="/Admin/Reports/Index" id="mobile-nav-reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    Reports
+                </a>
+            }
+            else if (role == "Staff")
+            {
+                <a asp-page="/Staff/Categories/Index" id="mobile-nav-categories">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+                    </svg>
+                    Categories
+                </a>
+                <a asp-page="/Staff/News/Index" id="mobile-nav-news">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2zM9 7h10M9 11h10M9 15h6"/>
+                    </svg>
+                    News Articles
+                </a>
+                <a asp-page="/Staff/History/Index" id="mobile-nav-history">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <polyline points="12 8 12 12 14 14"/><path d="M3.05 11a9 9 0 1 1 .5 4m-.5 5v-5h5"/>
+                    </svg>
+                    History
+                </a>
+                <a asp-page="/Staff/Profile/Index" id="mobile-nav-profile">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                    </svg>
+                    My Profile
+                </a>
+            }
+            else
+            {
+                <a asp-page="/News/Index" id="mobile-nav-news-public">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2zM9 7h10M9 11h10M9 15h6"/>
+                    </svg>
+                    News
+                </a>
+            }
+
+            <div class="mobile-divider"></div>
+
+            @if (user is null)
+            {
+                <a asp-page="/Auth/Login" id="mobile-nav-login" style="color:#93c5fd">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                        <polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/>
+                    </svg>
+                    Sign In
+                </a>
+            }
+            else
+            {
+                <form method="post" asp-page="/Auth/Logout" style="margin:0" id="mobile-logout-form">
+                    <button type="submit" class="btn-logout" id="mobile-btn-logout" style="width:100%;justify-content:flex-start;background:transparent;border:none;color:#fca5a5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                            <polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/>
+                        </svg>
+                        Logout
+                    </button>
+                </form>
+            }
+
+        </div><!-- /fu-mobile-menu -->
+    </header>
+    <!-- ══════════════ END NAVBAR ══════════════ -->
+
+    <!-- Main content -->
+    <div class="fu-main">
+        <div class="page-container">
+            @RenderBody()
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script>
+        // ── Mobile hamburger toggle ──
+        (function () {
+            var toggler = document.getElementById('fu-toggler');
+            var mobileMenu = document.getElementById('fu-mobile-menu');
+            if (!toggler || !mobileMenu) return;
+
+            toggler.addEventListener('click', function () {
+                var isOpen = mobileMenu.classList.toggle('open');
+                toggler.setAttribute('aria-expanded', isOpen.toString());
+                mobileMenu.setAttribute('aria-hidden', (!isOpen).toString());
+
+                // Animate hamburger → X
+                var spans = toggler.querySelectorAll('span');
+                if (isOpen) {
+                    spans[0].style.cssText = 'transform:translateY(7px) rotate(45deg)';
+                    spans[1].style.opacity = '0';
+                    spans[2].style.cssText = 'transform:translateY(-7px) rotate(-45deg)';
+                } else {
+                    spans[0].style.cssText = '';
+                    spans[1].style.opacity = '';
+                    spans[2].style.cssText = '';
+                }
+            });
+
+            // Close on outside click
+            document.addEventListener('click', function (e) {
+                if (!toggler.contains(e.target) && !mobileMenu.contains(e.target)) {
+                    mobileMenu.classList.remove('open');
+                    toggler.setAttribute('aria-expanded', 'false');
+                    mobileMenu.setAttribute('aria-hidden', 'true');
+                    toggler.querySelectorAll('span').forEach(function (s) { s.style.cssText = ''; });
+                }
+            });
+        })();
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

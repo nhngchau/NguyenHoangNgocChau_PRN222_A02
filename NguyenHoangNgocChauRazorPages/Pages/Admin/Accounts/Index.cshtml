@@ -1,0 +1,72 @@
+@page
+@model NguyenHoangNgocChauRazorPages.Pages.Admin.Accounts.IndexModel
+@{ ViewData["Title"] = "Account Management"; }
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Account Management</h1>
+    <button type="button" class="btn btn-primary" onclick="openCreateModal()">Create account</button>
+</div>
+
+@if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+@if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+
+<form method="get" class="row g-2 mb-3">
+    <div class="col-sm-5"><input asp-for="SearchTerm" class="form-control" placeholder="Search name or email" /></div>
+    <div class="col-auto"><button class="btn btn-outline-primary" type="submit">Search</button></div>
+    <div class="col-auto"><a asp-page="/Admin/Accounts/Index" class="btn btn-outline-secondary">Clear</a></div>
+</form>
+
+<div class="table-responsive"><table class="table table-striped align-middle">
+    <thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th></tr></thead>
+    <tbody>
+    @foreach (var account in Model.Accounts)
+    {
+        <tr>
+            <td>@account.AccountID</td><td>@account.AccountName</td><td>@account.AccountEmail</td><td>@account.RoleName</td>
+            <td class="text-nowrap">
+                <button type="button" class="btn btn-sm btn-outline-primary" onclick="openEditModal(this)" data-id="@account.AccountID" data-name="@account.AccountName" data-email="@account.AccountEmail" data-role="@account.AccountRole">Edit</button>
+                <form method="post" asp-page-handler="Delete" class="d-inline" onsubmit="return confirm('Delete this account?');">
+                    <input type="hidden" name="id" value="@account.AccountID" /><button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table></div>
+
+<div class="modal fade" id="accountModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog"><div class="modal-content">
+        <form method="post" asp-page-handler="Save">
+            <div class="modal-header"><h5 class="modal-title" id="modalTitle">Account</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-body">
+                <input asp-for="Input.AccountID" type="hidden" />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                <div class="mb-3"><label asp-for="Input.AccountName" class="form-label"></label><input asp-for="Input.AccountName" class="form-control" /><span asp-validation-for="Input.AccountName" class="text-danger"></span></div>
+                <div class="mb-3"><label asp-for="Input.AccountEmail" class="form-label"></label><input asp-for="Input.AccountEmail" class="form-control" /><span asp-validation-for="Input.AccountEmail" class="text-danger"></span></div>
+                <div class="mb-3"><label asp-for="Input.AccountPassword" class="form-label"></label><input asp-for="Input.AccountPassword" class="form-control" /><div class="form-text">Required when creating; leave blank to keep the current password when editing.</div><span asp-validation-for="Input.AccountPassword" class="text-danger"></span></div>
+                <div class="mb-3"><label asp-for="Input.AccountRole" class="form-label"></label><select asp-for="Input.AccountRole" class="form-select"><option value="1">Staff</option><option value="2">Lecturer</option></select><span asp-validation-for="Input.AccountRole" class="text-danger"></span></div>
+            </div>
+            <div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="submit" class="btn btn-primary">Save</button></div>
+        </form>
+    </div></div>
+</div>
+
+@section Scripts {
+<script>
+    const accountModal = new bootstrap.Modal(document.getElementById('accountModal'));
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = 'Create account';
+        document.getElementById('Input_AccountID').value = '0'; document.getElementById('Input_AccountName').value = '';
+        document.getElementById('Input_AccountEmail').value = ''; document.getElementById('Input_AccountPassword').value = '';
+        document.getElementById('Input_AccountRole').value = '1'; accountModal.show();
+    }
+    function openEditModal(button) {
+        const { id, name, email, role } = button.dataset;
+        document.getElementById('modalTitle').textContent = 'Edit account';
+        document.getElementById('Input_AccountID').value = id; document.getElementById('Input_AccountName').value = name;
+        document.getElementById('Input_AccountEmail').value = email; document.getElementById('Input_AccountPassword').value = '';
+        document.getElementById('Input_AccountRole').value = role; accountModal.show();
+    }
+    @if (Model.ShowModal) { <text>accountModal.show();</text> }
+</script>
+}

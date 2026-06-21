@@ -1,0 +1,13 @@
+@page
+@model NguyenHoangNgocChauRazorPages.Pages.Staff.Profile.IndexModel
+@{ ViewData["Title"] = "My Profile"; }
+<h1>My Profile</h1>
+@if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
+<form method="post" class="card card-body col-lg-6">
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="mb-3"><label asp-for="Input.AccountName" class="form-label"></label><input asp-for="Input.AccountName" class="form-control" /><span asp-validation-for="Input.AccountName" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Input.AccountEmail" class="form-label"></label><input asp-for="Input.AccountEmail" class="form-control" /><span asp-validation-for="Input.AccountEmail" class="text-danger"></span></div>
+    <div class="mb-3"><label asp-for="Input.AccountPassword" class="form-label"></label><input asp-for="Input.AccountPassword" class="form-control" /><div class="form-text">Leave blank to keep your current password.</div><span asp-validation-for="Input.AccountPassword" class="text-danger"></span></div>
+    <div class="mb-3"><label class="form-label">Role</label><input class="form-control" value="Staff" disabled /></div>
+    <button class="btn btn-primary align-self-start" type="submit">Save profile</button>
+</form>

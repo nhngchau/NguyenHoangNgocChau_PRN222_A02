@@ -1,0 +1,164 @@
+/* ═══════════════════════════════════════════════════
+   site.css — FUNews Management System
+   Global base styles (layout-agnostic utilities)
+═══════════════════════════════════════════════════ */
+
+/* ── Base ── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+    font-family: 'Inter', Arial, sans-serif;
+    margin: 0;
+    color: #1f2937;
+    background: #f4f6f9;
+}
+
+/* ── Utility ── */
+.inline-form  { display: inline; }
+.link-button  { border: 0; background: transparent; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+.spacer       { flex: 1; }
+
+/* ── Forms ── */
+.form-group { margin: 1rem 0; display: grid; gap: .4rem; }
+.validation-message { color: #b91c1c; font-size: 0.85rem; }
+
+/* ── Content Cards ── */
+.news-list   { display: grid; gap: 1rem; }
+
+.news-card, .news-detail {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+    transition: box-shadow 0.2s ease;
+}
+
+.news-card:hover { box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.news-card h2 { margin-top: 0; font-size: 1.1rem; color: #111827; }
+
+/* ── Definition lists ── */
+dl { display: grid; grid-template-columns: 110px 1fr; gap: .35rem .75rem; }
+dt { font-weight: 600; color: #374151; }
+dd { margin: 0; color: #4b5563; }
+
+/* ── Typography helpers ── */
+.headline     { font-size: 1.15rem; font-weight: 600; color: #0d2b4e; }
+.news-content { line-height: 1.7; white-space: pre-line; color: #374151; }
+
+/* ── Search form ── */
+.search-form {
+    display: flex;
+    gap: .6rem;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.search-form input[type="text"],
+.search-form select {
+    padding: .55rem .875rem;
+    border: 1.5px solid #e5e7eb;
+    border-radius: 9px;
+    font-size: 0.9rem;
+    font-family: inherit;
+    background: #fff;
+    color: #111827;
+    outline: none;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.search-form input[type="text"]:focus,
+.search-form select:focus {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.12);
+}
+
+.search-form button {
+    padding: .55rem 1.125rem;
+    background: linear-gradient(135deg, #1a56db, #2563eb);
+    color: #fff;
+    border: none;
+    border-radius: 9px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: inherit;
+    transition: opacity 0.18s ease, transform 0.15s ease;
+}
+
+.search-form button:hover { opacity: 0.9; transform: translateY(-1px); }
+
+/* ── Tables ── */
+.table-wrapper {
+    background: #fff;
+    border-radius: 12px;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+}
+
+table { width: 100%; border-collapse: collapse; }
+thead th {
+    background: #f8fafc;
+    padding: 0.75rem 1rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6b7280;
+    border-bottom: 1px solid #e5e7eb;
+    text-align: left;
+}
+tbody td {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    border-bottom: 1px solid #f3f4f6;
+    color: #374151;
+}
+tbody tr:last-child td { border-bottom: none; }
+tbody tr:hover td { background: #f9fafb; }
+
+/* ── Action Buttons (used in tables/forms) ── */
+.btn-primary-sm, .btn-danger-sm, .btn-secondary-sm {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3rem;
+    padding: 0.35rem 0.75rem;
+    border-radius: 7px;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    font-family: inherit;
+    transition: opacity 0.15s ease;
+}
+
+.btn-primary-sm   { background: #2563eb; color: #fff; }
+.btn-danger-sm    { background: #ef4444; color: #fff; }
+.btn-secondary-sm { background: #e5e7eb; color: #374151; }
+
+.btn-primary-sm:hover, .btn-danger-sm:hover, .btn-secondary-sm:hover { opacity: 0.85; }
+
+/* ── Page header block ── */
+.page-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.page-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #0d2b4e;
+    margin: 0;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+    .page-header { flex-direction: column; align-items: flex-start; }
+    .search-form { flex-wrap: wrap; }
+    dl { grid-template-columns: 1fr; }
+}

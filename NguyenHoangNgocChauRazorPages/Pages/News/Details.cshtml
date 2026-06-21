@@ -1,0 +1,209 @@
+@page "{id}"
+@model NguyenHoangNgocChauRazorPages.Pages.News.DetailsModel
+@{
+    ViewData["Title"] = Model.Article.NewsTitle;
+}
+
+@section Styles {
+<style>
+    /* ══════════════════════════════════════════
+       News Detail Page Styles
+    ══════════════════════════════════════════ */
+
+    .detail-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1.5rem;
+        transition: color 0.15s, gap 0.15s;
+    }
+
+    .detail-back:hover { color: #1d4ed8; gap: 0.25rem; }
+
+    .detail-wrapper {
+        max-width: 780px;
+        margin: 0 auto;
+    }
+
+    .detail-card {
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        overflow: hidden;
+    }
+
+    /* Accent bar */
+    .detail-card-accent {
+        height: 5px;
+        background: linear-gradient(90deg, #1a56db, #3b82f6, #60a5fa);
+    }
+
+    .detail-card-body {
+        padding: 2.5rem;
+    }
+
+    /* Category badge */
+    .detail-category {
+        display: inline-flex;
+        align-items: center;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        margin-bottom: 1rem;
+    }
+
+    /* Article title */
+    .detail-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        color: #0d2b4e;
+        line-height: 1.25;
+        letter-spacing: -0.3px;
+        margin: 0 0 0.875rem;
+    }
+
+    /* Headline / subtitle */
+    .detail-headline {
+        font-size: 1.05rem;
+        color: #4b5563;
+        font-weight: 400;
+        line-height: 1.55;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1.5rem;
+        border-bottom: 1px solid #f3f4f6;
+    }
+
+    /* Meta grid */
+    .detail-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        margin-bottom: 1.75rem;
+        font-size: 0.8125rem;
+        color: #6b7280;
+    }
+
+    .detail-meta-item {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+    }
+
+    .detail-meta-item strong {
+        color: #374151;
+        font-weight: 600;
+    }
+
+    /* Tags */
+    .detail-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.35rem;
+        margin-bottom: 2rem;
+    }
+
+    .detail-tag {
+        background: #f3f4f6;
+        color: #374151;
+        border-radius: 6px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.78rem;
+        font-weight: 500;
+    }
+
+    /* Content divider */
+    .content-divider {
+        border: none;
+        border-top: 2px solid #f3f4f6;
+        margin-bottom: 2rem;
+    }
+
+    /* Article body text */
+    .detail-content {
+        font-size: 0.9625rem;
+        line-height: 1.8;
+        color: #374151;
+        white-space: pre-line;
+    }
+
+    @@media (max-width: 640px) {
+        .detail-card-body { padding: 1.5rem; }
+        .detail-title { font-size: 1.4rem; }
+    }
+</style>
+}
+
+<div class="detail-wrapper">
+    <!-- Back link -->
+    <a asp-page="/News/Index" class="detail-back">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+        </svg>
+        Back to active news
+    </a>
+
+    <article class="detail-card">
+        <div class="detail-card-accent"></div>
+        <div class="detail-card-body">
+
+            <!-- Category -->
+            <span class="detail-category">
+                @(Model.Article.Category?.CategoryName ?? "Uncategorized")
+            </span>
+
+            <!-- Title -->
+            <h1 class="detail-title">@Model.Article.NewsTitle</h1>
+
+            <!-- Headline -->
+            <p class="detail-headline">@Model.Article.Headline</p>
+
+            <!-- Meta -->
+            <div class="detail-meta">
+                <div class="detail-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span><strong>Published:</strong> @Model.Article.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</span>
+                </div>
+                <div class="detail-meta-item">
+                    <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    <span><strong>Source:</strong> @(Model.Article.NewsSource ?? "N/A")</span>
+                </div>
+            </div>
+
+            <!-- Tags -->
+            @{
+                var tags = Model.Article.NewsTags.Where(nt => nt.Tag != null).ToList();
+            }
+            @if (tags.Any())
+            {
+                <div class="detail-tags">
+                    @foreach (var nt in tags)
+                    {
+                        <span class="detail-tag">@nt.Tag!.TagName</span>
+                    }
+                </div>
+            }
+
+            <hr class="content-divider" />
+
+            <!-- Article body -->
+            <div class="detail-content">@Model.Article.NewsContent</div>
+
+        </div>
+    </article>
+</div>

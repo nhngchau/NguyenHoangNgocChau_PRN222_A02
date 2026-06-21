@@ -1,0 +1,891 @@
+@page
+@model NguyenHoangNgocChauRazorPages.Pages.Staff.Categories.IndexModel
+@{
+    ViewData["Title"] = "Category Management";
+}
+
+@section Styles {
+<style>
+    /* ══════════════════════════════════════════
+       Category Management — Staff Page Styles
+    ══════════════════════════════════════════ */
+
+    /* ── Page Header ── */
+    .cat-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.75rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .cat-page-header h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0d2b4e;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .cat-page-header h1 svg { color: #2563eb; }
+
+    /* ── Create Button ── */
+    .btn-create-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.25rem;
+        background: linear-gradient(135deg, #1a56db, #2563eb);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: 'Inter', inherit;
+        transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
+        box-shadow: 0 3px 10px rgba(26,86,219,0.35);
+        white-space: nowrap;
+    }
+
+    .btn-create-cat:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(26,86,219,0.45);
+    }
+
+    /* ── Flash Alerts ── */
+    .flash-alert {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+        border: 1px solid transparent;
+    }
+
+    .flash-alert.success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #15803d;
+    }
+
+    .flash-alert.danger {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    /* ── Search Bar ── */
+    .cat-search-bar {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .cat-search-bar .search-icon { color: #9ca3af; flex-shrink: 0; }
+
+    .cat-search-bar input[type="text"] {
+        flex: 1;
+        min-width: 180px;
+        border: none;
+        outline: none;
+        font-size: 0.9rem;
+        font-family: inherit;
+        color: #111827;
+        background: transparent;
+    }
+
+    .cat-search-bar input[type="text"]::placeholder { color: #9ca3af; }
+
+    .btn-search-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 1rem;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity 0.15s;
+    }
+
+    .btn-search-cat:hover { opacity: 0.88; }
+
+    .btn-clear-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.875rem;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.15s;
+        font-family: inherit;
+    }
+
+    .btn-clear-cat:hover { background: #e5e7eb; color: #111827; }
+
+    /* ── Premium Table ── */
+    .cat-table-wrapper {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        overflow: hidden;
+    }
+
+    .cat-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .cat-table thead th {
+        background: #f8fafc;
+        padding: 0.875rem 1.125rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+        color: #6b7280;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .cat-table tbody td {
+        padding: 0.95rem 1.125rem;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .cat-table tbody tr:last-child td { border-bottom: none; }
+
+    /* Striped rows */
+    .cat-table tbody tr:nth-child(even) td { background: #fafafa; }
+
+    /* Hover effect */
+    .cat-table tbody tr {
+        transition: background 0.12s ease;
+    }
+
+    .cat-table tbody tr:hover td {
+        background: #eff6ff !important;
+    }
+
+    /* ID column */
+    .col-id {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        font-family: monospace;
+        font-weight: 600;
+    }
+
+    /* Name column */
+    .cat-name {
+        font-weight: 600;
+        color: #0d2b4e;
+    }
+
+    /* Description column */
+    .cat-desc {
+        color: #6b7280;
+        font-size: 0.85rem;
+        max-width: 300px;
+    }
+
+    /* Status badge */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        border-radius: 999px;
+        padding: 0.25rem 0.75rem;
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+        text-transform: uppercase;
+    }
+
+    .status-badge .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .status-badge.active {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-badge.active .dot { background: #16a34a; }
+
+    .status-badge.inactive {
+        background: #f9fafb;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+    }
+
+    .status-badge.inactive .dot { background: #9ca3af; }
+
+    /* Action buttons */
+    .action-cell {
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+        white-space: nowrap;
+    }
+
+    .btn-edit-cat, .btn-delete-cat {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.38rem 0.8rem;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1.5px solid transparent;
+        font-family: inherit;
+        transition: all 0.15s ease;
+        background: transparent;
+    }
+
+    .btn-edit-cat {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .btn-edit-cat:hover {
+        background: #dbeafe;
+        border-color: #93c5fd;
+    }
+
+    .btn-delete-cat {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-delete-cat:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
+
+    /* Empty state */
+    .cat-empty {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+    }
+
+    .cat-empty svg { margin-bottom: 1rem; opacity: 0.35; }
+    .cat-empty p { font-size: 0.9rem; margin: 0; }
+
+    /* ══════════════════════════════════════════
+       CREATE / EDIT MODAL — Styled shell
+       IDs preserved: categoryModal, modalTitle,
+       Input_CategoryID, Input_CategoryName,
+       Input_CategoryDescription, Input_IsActive
+    ══════════════════════════════════════════ */
+
+    #categoryModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+
+    #categoryModal .modal-header {
+        background: linear-gradient(135deg, #0d2b4e, #1a4a7a);
+        color: #fff;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    #categoryModal .modal-title {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #categoryModal .btn-close {
+        filter: invert(1) grayscale(1) brightness(2);
+        opacity: 0.8;
+    }
+
+    #categoryModal .modal-body {
+        padding: 1.75rem 1.5rem 1.25rem;
+        background: #fff;
+    }
+
+    #categoryModal .modal-footer {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+        gap: 0.5rem;
+    }
+
+    /* Form labels */
+    #categoryModal .form-label {
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #374151;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.35rem;
+    }
+
+    /* Inputs & textarea */
+    #categoryModal .form-control {
+        border: 1.5px solid #e5e7eb;
+        border-radius: 9px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        background: #f9fafb;
+        color: #111827;
+        padding: 0.6rem 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    #categoryModal .form-control:focus {
+        border-color: #2563eb;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        outline: none;
+    }
+
+    /* Validation error states */
+    #categoryModal .form-control.input-validation-error {
+        border-color: #ef4444;
+        background: #fff5f5;
+    }
+
+    #categoryModal .text-danger:not(div) {
+        font-size: 0.78rem;
+        color: #dc2626;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    /* Validation summary */
+    #categoryModal div.text-danger {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-left: 4px solid #ef4444;
+        border-radius: 9px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: #b91c1c;
+    }
+
+    /* Status switch */
+    #categoryModal .form-check { margin-top: 0.25rem; }
+
+    #categoryModal .form-check-input {
+        width: 2.5rem;
+        height: 1.35rem;
+        cursor: pointer;
+    }
+
+    #categoryModal .form-check-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #374151;
+        margin-left: 0.5rem;
+        cursor: pointer;
+    }
+
+    /* Footer action buttons */
+    .btn-modal-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 1.25rem;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .btn-modal-cancel:hover { background: #e5e7eb; }
+
+    .btn-modal-save {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 1.5rem;
+        background: linear-gradient(135deg, #1a56db, #2563eb);
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: 0 2px 8px rgba(26,86,219,0.35);
+        transition: opacity 0.15s, transform 0.12s;
+    }
+
+    .btn-modal-save:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── Delete Confirmation Modal ── */
+    #deleteCatModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+
+    #deleteCatModal .modal-body {
+        padding: 2.5rem 2rem 1.5rem;
+        text-align: center;
+    }
+
+    .delete-icon-wrap {
+        width: 72px;
+        height: 72px;
+        background: #fef2f2;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .delete-icon-wrap svg { color: #ef4444; }
+
+    #deleteCatModal h5 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    #deleteCatModal p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+    #deleteCatModal .modal-footer {
+        border-top: 1px solid #f3f4f6;
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+    }
+
+    .btn-confirm-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 1.5rem;
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+        transition: opacity 0.15s, transform 0.12s;
+    }
+
+    .btn-confirm-delete:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    @@media (max-width: 640px) {
+        .cat-page-header { flex-direction: column; align-items: flex-start; }
+        .action-cell { flex-direction: column; }
+        .cat-desc { max-width: 140px; }
+    }
+</style>
+}
+
+<!-- ── Page Header ── -->
+<div class="cat-page-header">
+    <h1>
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Category Management
+    </h1>
+    <!-- KEEP onclick="openCreateModal()" -->
+    <button class="btn-create-cat" type="button" onclick="openCreateModal()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+        </svg>
+        Create Category
+    </button>
+</div>
+
+<!-- ── Flash messages ── -->
+@if (TempData["Success"] is string success)
+{
+    <div class="flash-alert success" role="alert">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        @success
+    </div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="flash-alert danger" role="alert">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        @error
+    </div>
+}
+
+<!-- ── Search Bar ── -->
+<form method="get" class="cat-search-bar">
+    <svg class="search-icon" width="17" height="17" fill="none" stroke="currentColor"
+         stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+    </svg>
+    <input asp-for="SearchTerm" type="text"
+           placeholder="Search by name or description…" autocomplete="off" />
+    <button type="submit" class="btn-search-cat">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Search
+    </button>
+    <a asp-page="/Staff/Categories/Index" class="btn-clear-cat">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Clear
+    </a>
+</form>
+
+<!-- ── Categories Table ── -->
+<div class="cat-table-wrapper">
+    <div class="table-responsive">
+        <table class="cat-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Category Name</th>
+                    <th>Description</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Categories.Any())
+                {
+                    <tr>
+                        <td colspan="5">
+                            <div class="cat-empty">
+                                <svg width="48" height="48" fill="none" stroke="currentColor"
+                                     stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"
+                                     viewBox="0 0 24 24">
+                                    <rect x="3" y="3" width="7" height="7"/>
+                                    <rect x="14" y="3" width="7" height="7"/>
+                                    <rect x="14" y="14" width="7" height="7"/>
+                                    <rect x="3" y="14" width="7" height="7"/>
+                                </svg>
+                                <p>No categories found.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var category in Model.Categories)
+                {
+                    <tr>
+                        <td class="col-id">#@category.CategoryID</td>
+                        <td>
+                            <span class="cat-name">@category.CategoryName</span>
+                        </td>
+                        <td>
+                            <span class="cat-desc">
+                                @(string.IsNullOrWhiteSpace(category.CategoryDescription)
+                                    ? "—"
+                                    : category.CategoryDescription)
+                            </span>
+                        </td>
+                        <td>
+                            @if (category.IsActive == true)
+                            {
+                                <span class="status-badge active">
+                                    <span class="dot"></span> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-badge inactive">
+                                    <span class="dot"></span> Inactive
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="action-cell">
+                                <!-- KEEP: onclick="openEditModal(this)" + all data-* attributes -->
+                                <button type="button" class="btn-edit-cat"
+                                        onclick="openEditModal(this)"
+                                        data-id="@category.CategoryID"
+                                        data-name="@category.CategoryName"
+                                        data-description="@category.CategoryDescription"
+                                        data-active="@category.IsActive.GetValueOrDefault().ToString().ToLowerInvariant()">
+                                    <svg width="13" height="13" fill="none" stroke="currentColor"
+                                         stroke-width="2.5" stroke-linecap="round"
+                                         stroke-linejoin="round" viewBox="0 0 24 24">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                                    </svg>
+                                    Edit
+                                </button>
+                                <!-- Delete triggers #deleteCatModal, not confirm() -->
+                                <button type="button" class="btn-delete-cat"
+                                        onclick="openDeleteModal(@category.CategoryID)">
+                                    <svg width="13" height="13" fill="none" stroke="currentColor"
+                                         stroke-width="2.5" stroke-linecap="round"
+                                         stroke-linejoin="round" viewBox="0 0 24 24">
+                                        <polyline points="3 6 5 6 21 6"/>
+                                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                                        <path d="M10 11v6M14 11v6"/>
+                                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                                    </svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     CREATE / EDIT MODAL
+     KEEP IDs: categoryModal, modalTitle,
+     Input_CategoryID, Input_CategoryName,
+     Input_CategoryDescription, Input_IsActive
+     KEEP: asp-page-handler="Save", all asp-for
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="categoryModal" tabindex="-1"
+     aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Save">
+                <!-- Header -->
+                <div class="modal-header">
+                    <h5 id="modalTitle" class="modal-title">
+                        <svg width="17" height="17" fill="none" stroke="currentColor"
+                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                             viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7"/>
+                            <rect x="14" y="3" width="7" height="7"/>
+                            <rect x="14" y="14" width="7" height="7"/>
+                            <rect x="3" y="14" width="7" height="7"/>
+                        </svg>
+                        Category
+                    </h5>
+                    <button type="button" class="btn-close"
+                            data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                <!-- Body -->
+                <div class="modal-body">
+                    <!-- KEEP hidden field -->
+                    <input asp-for="Input.CategoryID" type="hidden" />
+
+                    <!-- Validation summary -->
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    <!-- Category Name -->
+                    <div class="mb-3">
+                        <label asp-for="Input.CategoryName" class="form-label"></label>
+                        <input asp-for="Input.CategoryName" class="form-control"
+                               placeholder="Enter category name…" />
+                        <span asp-validation-for="Input.CategoryName" class="text-danger"></span>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="mb-3">
+                        <label asp-for="Input.CategoryDescription" class="form-label"></label>
+                        <textarea asp-for="Input.CategoryDescription" class="form-control"
+                                  rows="3"
+                                  placeholder="Optional: describe this category…"></textarea>
+                        <span asp-validation-for="Input.CategoryDescription" class="text-danger"></span>
+                    </div>
+
+                    <!-- Status toggle — manual binding (bool? not supported by asp-for on checkbox) -->
+                    <div class="form-check form-switch">
+                        <input class="form-check-input"
+                               type="checkbox"
+                               role="switch"
+                               id="Input_IsActive"
+                               name="Input.IsActive"
+                               value="true"
+                               @(Model.Input.IsActive == true ? "checked" : "") />
+                        <!-- Hidden fallback so unchecked sends false -->
+                        <input type="hidden" name="Input.IsActive" value="false" />
+                        <label class="form-check-label" for="Input_IsActive">Is Active</label>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel"
+                            data-bs-dismiss="modal">
+                        <svg width="14" height="14" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round"
+                             stroke-linejoin="round" viewBox="0 0 24 24">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-modal-save">
+                        <svg width="14" height="14" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round"
+                             stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12"/>
+                        </svg>
+                        Save Category
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- ══════════════════════════════════════════════
+     DELETE CONFIRMATION MODAL
+     Hidden form submits asp-page-handler="Delete"
+════════════════════════════════════════════════ -->
+<div class="modal fade" id="deleteCatModal" tabindex="-1"
+     aria-labelledby="deleteCatModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="delete-icon-wrap">
+                    <svg width="32" height="32" fill="none" stroke="currentColor"
+                         stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                         viewBox="0 0 24 24">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                </div>
+                <h5>Delete Category?</h5>
+                <p>This action cannot be undone. Categories linked to news articles cannot be deleted.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel"
+                        data-bs-dismiss="modal">Cancel</button>
+                <!-- Hidden delete form; id populated by openDeleteModal() JS -->
+                <form id="deleteCatForm" method="post"
+                      asp-page-handler="Delete" style="margin:0">
+                    <input type="hidden" name="id" id="deleteCatId" value="" />
+                    <button type="submit" class="btn-confirm-delete">
+                        <svg width="14" height="14" fill="none" stroke="currentColor"
+                             stroke-width="2.5" stroke-linecap="round"
+                             stroke-linejoin="round" viewBox="0 0 24 24">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        </svg>
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    /* ══════════════════════════════════════════════
+       Category Modals JS
+       KEEP ORIGINAL LOGIC for categoryModal,
+       openCreateModal, openEditModal, setTags.
+       IDs preserved: categoryModal, modalTitle,
+       Input_CategoryID, Input_CategoryName,
+       Input_CategoryDescription, Input_IsActive
+    ══════════════════════════════════════════════ */
+
+    const categoryModal = new bootstrap.Modal(document.getElementById('categoryModal'));
+    const deleteCatModal = new bootstrap.Modal(document.getElementById('deleteCatModal'));
+
+    /* openCreateModal — KEEP ORIGINAL LOGIC */
+    function openCreateModal() {
+        document.getElementById('modalTitle').textContent = 'Create Category';
+        document.getElementById('Input_CategoryID').value = '0';
+        document.getElementById('Input_CategoryName').value = '';
+        document.getElementById('Input_CategoryDescription').value = '';
+        document.getElementById('Input_IsActive').checked = true;
+        categoryModal.show();
+    }
+
+    /* openEditModal — KEEP ORIGINAL LOGIC */
+    function openEditModal(button) {
+        const d = button.dataset;
+        document.getElementById('modalTitle').textContent = 'Edit Category';
+        document.getElementById('Input_CategoryID').value = d.id;
+        document.getElementById('Input_CategoryName').value = d.name;
+        document.getElementById('Input_CategoryDescription').value = d.description;
+        document.getElementById('Input_IsActive').checked = d.active === 'true';
+        categoryModal.show();
+    }
+
+    /* openDeleteModal — NEW: replaces confirm() with styled Modal */
+    function openDeleteModal(categoryId) {
+        document.getElementById('deleteCatId').value = categoryId;
+        deleteCatModal.show();
+    }
+
+    /* Re-open modal on validation error — KEEP ORIGINAL */
+    @if (Model.ShowModal) {
+        <text>categoryModal.show();</text>
+    }
+</script>
+}

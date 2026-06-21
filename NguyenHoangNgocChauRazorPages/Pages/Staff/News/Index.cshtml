@@ -1,0 +1,949 @@
+@page
+@model NguyenHoangNgocChauRazorPages.Pages.Staff.News.IndexModel
+@{
+    ViewData["Title"] = "News Management";
+}
+
+@section Styles {
+<style>
+    /* ══════════════════════════════════════════
+       News Management — Staff Page Styles
+    ══════════════════════════════════════════ */
+
+    /* ── Page Header ── */
+    .news-page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1.75rem;
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    .news-page-header h1 {
+        font-size: 1.6rem;
+        font-weight: 700;
+        color: #0d2b4e;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+    }
+
+    .news-page-header h1 svg {
+        color: #2563eb;
+    }
+
+    /* ── Create Button ── */
+    .btn-create {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.4rem;
+        padding: 0.55rem 1.25rem;
+        background: linear-gradient(135deg, #1a56db, #2563eb);
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: 'Inter', inherit;
+        text-decoration: none;
+        transition: opacity 0.18s, transform 0.15s, box-shadow 0.18s;
+        box-shadow: 0 3px 10px rgba(26,86,219,0.35);
+    }
+
+    .btn-create:hover {
+        opacity: 0.92;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 16px rgba(26,86,219,0.45);
+        color: #fff;
+    }
+
+    /* ── Toast (SignalR) — keep id, just restyle ── */
+    #newsRealtimeToast {
+        background: #0d2b4e;
+        color: #fff;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.25);
+        min-width: 260px;
+    }
+
+    #newsRealtimeToast .toast-body {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        padding: 0.75rem 1rem;
+    }
+
+    /* ── Flash Alerts ── */
+    .flash-alert {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        border-radius: 10px;
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+        font-weight: 500;
+        margin-bottom: 1.25rem;
+        border: 1px solid transparent;
+    }
+
+    .flash-alert.success {
+        background: #f0fdf4;
+        border-color: #bbf7d0;
+        color: #15803d;
+    }
+
+    .flash-alert.danger {
+        background: #fef2f2;
+        border-color: #fecaca;
+        color: #b91c1c;
+    }
+
+    /* ── Search Bar ── */
+    .news-search-bar {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+        background: #fff;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.75rem 1rem;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+    }
+
+    .news-search-bar .search-icon {
+        color: #9ca3af;
+        flex-shrink: 0;
+    }
+
+    .news-search-bar input[type="text"] {
+        flex: 1;
+        min-width: 200px;
+        border: none;
+        outline: none;
+        font-size: 0.9rem;
+        font-family: inherit;
+        color: #111827;
+        background: transparent;
+    }
+
+    .news-search-bar input[type="text"]::placeholder { color: #9ca3af; }
+
+    .btn-search {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 1rem;
+        background: #2563eb;
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: opacity 0.15s;
+    }
+
+    .btn-search:hover { opacity: 0.88; }
+
+    .btn-clear {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.45rem 0.875rem;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: background 0.15s;
+        font-family: inherit;
+    }
+
+    .btn-clear:hover { background: #e5e7eb; color: #111827; }
+
+    /* ── Premium Table ── */
+    .news-table-wrapper {
+        background: #fff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+        overflow: hidden;
+    }
+
+    .news-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.875rem;
+    }
+
+    .news-table thead th {
+        background: #f8fafc;
+        padding: 0.875rem 1rem;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #6b7280;
+        border-bottom: 2px solid #e5e7eb;
+        white-space: nowrap;
+    }
+
+    .news-table thead th:first-child { border-radius: 0; }
+
+    .news-table tbody td {
+        padding: 0.9rem 1rem;
+        border-bottom: 1px solid #f3f4f6;
+        color: #374151;
+        vertical-align: middle;
+    }
+
+    .news-table tbody tr:last-child td { border-bottom: none; }
+
+    .news-table tbody tr {
+        transition: background 0.12s ease;
+    }
+
+    .news-table tbody tr:hover td {
+        background: #f8fafc;
+    }
+
+    /* Article title column */
+    .article-title {
+        font-weight: 600;
+        color: #0d2b4e;
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+
+    .article-headline {
+        font-size: 0.78rem;
+        color: #9ca3af;
+        margin-top: 2px;
+        max-width: 240px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+    }
+
+    /* Category pill */
+    .category-pill {
+        display: inline-flex;
+        align-items: center;
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        border-radius: 999px;
+        padding: 0.2rem 0.65rem;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    /* Status badges */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        border-radius: 999px;
+        padding: 0.25rem 0.7rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+    }
+
+    .status-badge.active {
+        background: #f0fdf4;
+        color: #15803d;
+        border: 1px solid #bbf7d0;
+    }
+
+    .status-badge.inactive {
+        background: #f9fafb;
+        color: #6b7280;
+        border: 1px solid #e5e7eb;
+    }
+
+    .status-badge .dot {
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .status-badge.active .dot   { background: #16a34a; }
+    .status-badge.inactive .dot { background: #9ca3af; }
+
+    /* Tags in table */
+    .tag-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+        max-width: 180px;
+    }
+
+    .tag-chip {
+        background: #f3f4f6;
+        color: #374151;
+        border-radius: 5px;
+        padding: 0.15rem 0.45rem;
+        font-size: 0.7rem;
+        font-weight: 500;
+    }
+
+    /* Action buttons */
+    .action-cell {
+        white-space: nowrap;
+        display: flex;
+        gap: 0.4rem;
+        align-items: center;
+    }
+
+    .btn-edit, .btn-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.3rem;
+        padding: 0.38rem 0.75rem;
+        border-radius: 8px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        border: 1.5px solid transparent;
+        font-family: inherit;
+        transition: all 0.15s ease;
+    }
+
+    .btn-edit {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border-color: #bfdbfe;
+    }
+
+    .btn-edit:hover {
+        background: #dbeafe;
+        border-color: #93c5fd;
+    }
+
+    .btn-delete {
+        background: #fef2f2;
+        color: #dc2626;
+        border-color: #fecaca;
+    }
+
+    .btn-delete:hover {
+        background: #fee2e2;
+        border-color: #fca5a5;
+    }
+
+    /* Empty state */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: #9ca3af;
+    }
+
+    .empty-state svg {
+        margin-bottom: 1rem;
+        opacity: 0.4;
+    }
+
+    .empty-state p { margin: 0; font-size: 0.9rem; }
+
+    /* ══════════════════════════════════════════
+       MODALS — Restyle only shell, keep IDs
+    ══════════════════════════════════════════ */
+
+    /* Create / Edit Modal */
+    #newsModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        overflow: hidden;
+    }
+
+    #newsModal .modal-header {
+        background: linear-gradient(135deg, #0d2b4e, #1a4a7a);
+        color: #fff;
+        border-bottom: none;
+        padding: 1.25rem 1.5rem;
+    }
+
+    #newsModal .modal-title {
+        font-size: 1rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    #newsModal .btn-close {
+        filter: invert(1) grayscale(1) brightness(2);
+        opacity: 0.8;
+    }
+
+    #newsModal .modal-body {
+        padding: 1.5rem;
+        background: #fff;
+    }
+
+    #newsModal .modal-footer {
+        padding: 1rem 1.5rem;
+        background: #f8fafc;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    /* Styled form fields inside modal */
+    #newsModal .form-label {
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: #374151;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        margin-bottom: 0.35rem;
+    }
+
+    #newsModal .form-control,
+    #newsModal .form-select {
+        border: 1.5px solid #e5e7eb;
+        border-radius: 9px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        background: #f9fafb;
+        color: #111827;
+        padding: 0.55rem 0.875rem;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+    }
+
+    #newsModal .form-control:focus,
+    #newsModal .form-select:focus {
+        border-color: #2563eb;
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        outline: none;
+    }
+
+    /* Validation error state */
+    #newsModal .form-control.input-validation-error,
+    #newsModal .form-select.input-validation-error {
+        border-color: #ef4444;
+        background: #fff5f5;
+    }
+
+    #newsModal .field-validation-error {
+        font-size: 0.78rem;
+        color: #dc2626;
+        margin-top: 0.25rem;
+        display: block;
+    }
+
+    /* Validation summary in modal */
+    #newsModal [data-valmsg-summary] ul,
+    #newsModal .text-danger:not(span) {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        border-left: 4px solid #ef4444;
+        border-radius: 9px;
+        padding: 0.75rem 1rem;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        color: #b91c1c;
+        list-style: none;
+    }
+
+    /* Status toggle */
+    #newsModal .form-check-input {
+        width: 2.5rem;
+        height: 1.35rem;
+        cursor: pointer;
+    }
+
+    #newsModal .form-check-label {
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: #374151;
+        margin-left: 0.5rem;
+    }
+
+    /* Two-column grid for some fields */
+    .modal-grid-2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 1rem;
+    }
+
+    /* Multi-select tags */
+    #newsModal select[multiple] {
+        height: 120px;
+    }
+
+    /* Modal footer buttons */
+    .btn-modal-cancel {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 1.25rem;
+        background: #f3f4f6;
+        color: #374151;
+        border: 1px solid #e5e7eb;
+        border-radius: 9px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        transition: background 0.15s;
+    }
+
+    .btn-modal-cancel:hover { background: #e5e7eb; }
+
+    .btn-modal-save {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 1.5rem;
+        background: linear-gradient(135deg, #1a56db, #2563eb);
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: 0 2px 8px rgba(26,86,219,0.35);
+        transition: opacity 0.15s, transform 0.12s;
+    }
+
+    .btn-modal-save:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ── Delete Confirm Modal ── */
+    #deleteModal .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        overflow: hidden;
+        text-align: center;
+    }
+
+    #deleteModal .modal-body {
+        padding: 2.5rem 2rem 1.5rem;
+    }
+
+    .delete-icon-wrap {
+        width: 72px;
+        height: 72px;
+        background: #fef2f2;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.25rem;
+    }
+
+    .delete-icon-wrap svg { color: #ef4444; }
+
+    #deleteModal h5 {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #111827;
+        margin-bottom: 0.5rem;
+    }
+
+    #deleteModal p {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+    #deleteModal .modal-footer {
+        border-top: 1px solid #f3f4f6;
+        padding: 1rem 1.5rem;
+        display: flex;
+        justify-content: center;
+        gap: 0.75rem;
+        background: #f8fafc;
+    }
+
+    .btn-confirm-delete {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
+        padding: 0.55rem 1.5rem;
+        background: #ef4444;
+        color: #fff;
+        border: none;
+        border-radius: 9px;
+        font-size: 0.875rem;
+        font-weight: 600;
+        cursor: pointer;
+        font-family: inherit;
+        box-shadow: 0 2px 8px rgba(239,68,68,0.3);
+        transition: opacity 0.15s, transform 0.12s;
+    }
+
+    .btn-confirm-delete:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    @@media (max-width: 640px) {
+        .news-page-header { flex-direction: column; align-items: flex-start; }
+        .modal-grid-2 { grid-template-columns: 1fr; }
+        .action-cell { flex-direction: column; }
+    }
+</style>
+}
+
+
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999">
+    <div id="newsRealtimeToast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+        <div class="toast-body">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            News list has been updated.
+        </div>
+    </div>
+</div>
+
+
+<div class="news-page-header">
+    <h1>
+        <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2z"/><path d="M9 7h10M9 11h10M9 15h6"/>
+        </svg>
+        News Management
+    </h1>
+    
+    <button class="btn-create" type="button" onclick="openCreateModal()">
+        <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create News
+    </button>
+</div>
+
+
+@if (TempData["Success"] is string success)
+{
+    <div class="flash-alert success" role="alert">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+        @success
+    </div>
+}
+@if (TempData["Error"] is string error)
+{
+    <div class="flash-alert danger" role="alert">
+        <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        @error
+    </div>
+}
+
+
+<form method="get" class="news-search-bar">
+    <svg class="search-icon" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+    <input asp-for="SearchTerm" type="text" placeholder="Search by title, headline or content…" autocomplete="off" />
+    <button type="submit" class="btn-search">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        Search
+    </button>
+    <a asp-page="/Staff/News/Index" class="btn-clear">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+        Clear
+    </a>
+</form>
+
+
+<div class="news-table-wrapper">
+    <div class="table-responsive">
+        <table class="news-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Article</th>
+                    <th>Category</th>
+                    <th>Created</th>
+                    <th>Status</th>
+                    <th>Tags</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Articles.Any())
+                {
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <svg width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                                    <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2z"/><path d="M9 7h10M9 11h10M9 15h6"/>
+                                </svg>
+                                <p>No news articles found.</p>
+                            </div>
+                        </td>
+                    </tr>
+                }
+                @foreach (var article in Model.Articles)
+                {
+                    <tr>
+                        <td style="font-size:0.78rem;color:#9ca3af;font-family:monospace">@article.NewsArticleID</td>
+                        <td>
+                            <span class="article-title">@article.NewsTitle</span>
+                            <span class="article-headline">@article.Headline</span>
+                        </td>
+                        <td>
+                            <span class="category-pill">@(article.Category?.CategoryName ?? "N/A")</span>
+                        </td>
+                        <td style="font-size:0.82rem;white-space:nowrap">@article.CreatedDate?.ToString("dd/MM/yyyy")</td>
+                        <td>
+                            @if (article.NewsStatus == true)
+                            {
+                                <span class="status-badge active">
+                                    <span class="dot"></span> Active
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="status-badge inactive">
+                                    <span class="dot"></span> Inactive
+                                </span>
+                            }
+                        </td>
+                        <td>
+                            <div class="tag-list">
+                                @foreach (var nt in article.NewsTags.Where(x => x.Tag != null))
+                                {
+                                    <span class="tag-chip">@nt.Tag!.TagName</span>
+                                }
+                                @if (!article.NewsTags.Any(x => x.Tag != null))
+                                {
+                                    <span style="font-size:0.78rem;color:#d1d5db">—</span>
+                                }
+                            </div>
+                        </td>
+                        <td>
+                            <div class="action-cell">
+                                
+                                <button type="button" class="btn-edit" onclick="openEditModal(this)"
+                                        data-id="@article.NewsArticleID"
+                                        data-title="@article.NewsTitle"
+                                        data-headline="@article.Headline"
+                                        data-content="@article.NewsContent"
+                                        data-source="@article.NewsSource"
+                                        data-category="@article.CategoryID"
+                                        data-status="@article.NewsStatus.GetValueOrDefault().ToString().ToLowerInvariant()"
+                                        data-state="@article.ArticleStateID"
+                                        data-tags="@string.Join(',', article.NewsTags.Select(x => x.TagID))">
+                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    Edit
+                                </button>
+                                
+                                <button type="button" class="btn-delete"
+                                        onclick="openDeleteModal('@article.NewsArticleID')">
+                                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+                                    Delete
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+<div class="modal fade" id="newsModal" tabindex="-1" aria-labelledby="modalTitle" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <form method="post" asp-page-handler="Save">
+                
+                <div class="modal-header">
+                    <h5 id="modalTitle" class="modal-title">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2z"/></svg>
+                        News
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+
+                
+                <div class="modal-body">
+                    
+                    <input asp-for="Input.NewsArticleID" type="hidden" />
+                    <input asp-for="Input.ArticleStateID" type="hidden" />
+
+                    
+                    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                    
+                    <div class="modal-grid-2">
+                        <div class="mb-3">
+                            <label asp-for="Input.NewsTitle" class="form-label"></label>
+                            <input asp-for="Input.NewsTitle" class="form-control" placeholder="Enter news title…" />
+                            <span asp-validation-for="Input.NewsTitle" class="text-danger"></span>
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.Headline" class="form-label"></label>
+                            <input asp-for="Input.Headline" class="form-control" placeholder="Short headline…" />
+                            <span asp-validation-for="Input.Headline" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    
+                    <div class="mb-3">
+                        <label asp-for="Input.NewsContent" class="form-label"></label>
+                        <textarea asp-for="Input.NewsContent" class="form-control" rows="5" placeholder="Write the full article content…"></textarea>
+                        <span asp-validation-for="Input.NewsContent" class="text-danger"></span>
+                    </div>
+
+                    
+                    <div class="modal-grid-2">
+                        <div class="mb-3">
+                            <label asp-for="Input.NewsSource" class="form-label"></label>
+                            <input asp-for="Input.NewsSource" class="form-control" placeholder="Source URL or name…" />
+                        </div>
+                        <div class="mb-3">
+                            <label asp-for="Input.CategoryID" class="form-label"></label>
+                            <select asp-for="Input.CategoryID" class="form-select">
+                                <option value="0">-- Select category --</option>
+                                @foreach (var category in Model.Categories)
+                                {
+                                    <option value="@category.CategoryID">@category.CategoryName</option>
+                                }
+                            </select>
+                            <span asp-validation-for="Input.CategoryID" class="text-danger"></span>
+                        </div>
+                    </div>
+
+                    
+                    <div class="mb-3">
+                        <label asp-for="Input.TagIDs" class="form-label"></label>
+                        <select asp-for="Input.TagIDs" class="form-select" multiple>
+                            @foreach (var tag in Model.Tags)
+                            {
+                                <option value="@tag.TagID">@tag.TagName</option>
+                            }
+                        </select>
+                        <div style="font-size:0.75rem;color:#9ca3af;margin-top:0.3rem">Hold Ctrl / Cmd to select multiple tags</div>
+                    </div>
+
+                    
+                    <div class="form-check form-switch">
+                        <input asp-for="Input.NewsStatus" class="form-check-input" type="checkbox" role="switch" />
+                        <label asp-for="Input.NewsStatus" class="form-check-label"></label>
+                    </div>
+                </div>
+
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                        Cancel
+                    </button>
+                    <button type="submit" class="btn-modal-save">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+                        Save Article
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:400px">
+        <div class="modal-content">
+            <div class="modal-body">
+                <div class="delete-icon-wrap">
+                    <svg width="32" height="32" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <polyline points="3 6 5 6 21 6"/>
+                        <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                        <path d="M10 11v6M14 11v6"/>
+                        <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                    </svg>
+                </div>
+                <h5>Delete Article?</h5>
+                <p>This action cannot be undone. The article will be permanently removed.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-cancel" data-bs-dismiss="modal">Cancel</button>
+                
+                <form id="deleteForm" method="post" asp-page-handler="Delete" style="margin:0">
+                    <input type="hidden" name="id" id="deleteArticleId" value="" />
+                    <button type="submit" class="btn-confirm-delete">
+                        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+                        Yes, Delete
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    
+    <script src="https://cdn.jsdelivr.net/npm/@@microsoft/signalr@7.0.20/dist/browser/signalr.min.js"></script>
+    <script>if(typeof signalR==='undefined'){document.write('<script src="https://unpkg.com/@@microsoft/signalr@7.0.20/dist/browser/signalr.min.js"><\/script>');}</script>
+    <script src="~/js/newsRealtime.js" asp-append-version="true"></script>
+
+    <script>
+        /* ══════════════════════════════════════════════
+           KEEP ALL ORIGINAL JS LOGIC — DO NOT MODIFY
+           (newsModal, openCreateModal, openEditModal,
+            setTags, Input_* element IDs all preserved)
+        ══════════════════════════════════════════════ */
+        const newsModal = new bootstrap.Modal(document.getElementById('newsModal'));
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
+        const e = id => document.getElementById(id);
+
+        function setTags(value) {
+            const chosen = value ? value.split(',') : [];
+            Array.from(e('Input_TagIDs').options).forEach(o => o.selected = chosen.includes(o.value));
+        }
+
+        /* openCreateModal — KEEP ORIGINAL LOGIC */
+        function openCreateModal() {
+            e('modalTitle').textContent = 'Create News Article';
+            e('Input_NewsArticleID').value = '';
+            e('Input_NewsTitle').value = '';
+            e('Input_Headline').value = '';
+            e('Input_NewsContent').value = '';
+            e('Input_NewsSource').value = '';
+            e('Input_CategoryID').value = '0';
+            e('Input_NewsStatus').checked = true;
+            e('Input_ArticleStateID').value = '3';
+            setTags('');
+            newsModal.show();
+        }
+
+        /* openEditModal — KEEP ORIGINAL LOGIC */
+        function openEditModal(button) {
+            const d = button.dataset;
+            e('modalTitle').textContent = 'Edit News Article';
+            e('Input_NewsArticleID').value = d.id;
+            e('Input_NewsTitle').value = d.title;
+            e('Input_Headline').value = d.headline;
+            e('Input_NewsContent').value = d.content;
+            e('Input_NewsSource').value = d.source;
+            e('Input_CategoryID').value = d.category;
+            e('Input_NewsStatus').checked = d.status === 'true';
+            e('Input_ArticleStateID').value = d.state;
+            setTags(d.tags);
+            newsModal.show();
+        }
+
+        /* openDeleteModal — NEW: replaces confirm() with Modal */
+        function openDeleteModal(articleId) {
+            e('deleteArticleId').value = articleId;
+            deleteModal.show();
+        }
+
+        /* Re-open modal on validation error (KEEP ORIGINAL) */
+        @if (Model.ShowModal) {
+            <text>newsModal.show();</text>
+        }
+    </script>
+}

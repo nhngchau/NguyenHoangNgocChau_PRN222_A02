@@ -1,13 +1,8 @@
 (() => {
-    if (typeof signalR === "undefined") {
-        console.error("SignalR client library was not loaded.");
+    if (!window.newsHub) {
+        console.error("News realtime client was not loaded.");
         return;
     }
-
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl("/newsHub")
-        .withAutomaticReconnect()
-        .build();
 
     const esc = s => (s ?? "").toString()
         .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
@@ -26,7 +21,6 @@
             : `<span class="badge rounded-pill text-bg-warning">Inactive</span>`;
         return `
         <tr data-row-id="${esc(p.id)}">
-            <td class="text-muted small font-monospace">${esc(p.id)}</td>
             <td>
                 <div class="news-title">${esc(p.title)}</div>
                 <div class="news-headline text-muted small">${esc(p.headline)}</div>
@@ -54,7 +48,7 @@
         if (el && window.bootstrap) bootstrap.Toast.getOrCreateInstance(el).show();
     }
 
-    connection.on("NewsChanged", payload => {
+    function applyNewsRealtimeChange(payload) {
         const tbody = document.getElementById("newsTableBody");
         if (!tbody) return; // not on the news management page
 
@@ -68,21 +62,16 @@
             document.getElementById("emptyRow")?.remove();
         }
         showToast();
-    });
-
-    connection.onreconnecting(error => console.warn("SignalR reconnecting:", error));
-    connection.onreconnected(() => console.log("SignalR reconnected"));
-    connection.onclose(error => console.error("SignalR connection closed:", error));
-
-    async function startConnection() {
-        try {
-            await connection.start();
-            console.log("SignalR connected");
-        } catch (error) {
-            console.error("SignalR NewsHub connection failed:", error);
-            window.setTimeout(startConnection, 5000);
-        }
     }
 
-    startConnection();
+    // Also used by the Save response, so the staff tab updates immediately
+    // even when its SignalR connection is still reconnecting.
+    window.applyNewsRealtimeChange = applyNewsRealtimeChange;
+    window.refreshStaffNews = async () => {
+        const response = await fetch('/News/Index?handler=Articles', { credentials: 'same-origin' });
+        if (!response.ok) throw new Error(`Could not refresh news (${response.status})`);
+        const articles = await response.json();
+        articles.forEach(applyNewsRealtimeChange);
+    };
+    window.newsHub.subscribe(applyNewsRealtimeChange);
 })();

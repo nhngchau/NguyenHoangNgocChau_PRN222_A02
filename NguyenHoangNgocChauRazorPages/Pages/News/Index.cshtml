@@ -249,6 +249,16 @@
 </style>
 }
 
+<!-- Realtime toast -->
+<div class="toast-container position-fixed top-0 end-0 p-3" style="z-index:9999">
+    <div id="guestRealtimeToast" class="toast" role="status" aria-live="polite" aria-atomic="true">
+        <div class="toast-body d-flex align-items-center gap-2 bg-dark text-white rounded">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            News has been updated.
+        </div>
+    </div>
+</div>
+
 <!-- Page Header -->
 <div class="news-feed-header">
     <h1>
@@ -283,76 +293,207 @@
     }
 </form>
 
+<!-- Empty state (shown when no articles, toggled by SignalR) -->
+<div id="emptyState" class="feed-empty" style="@(Model.Articles.Count == 0 ? "" : "display:none")">
+    <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+        <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2z"/><path d="M9 7h10M9 11h10M9 15h6"/>
+    </svg>
+    <h3>No articles found</h3>
+    <p>@(string.IsNullOrWhiteSpace(Model.SearchTerm) ? "There are no active news articles at the moment." : $"No results for \"{Model.SearchTerm}\".")</p>
+</div>
+
 <!-- Articles Grid -->
-@if (Model.Articles.Count == 0)
-{
-    <div class="feed-empty">
-        <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-            <path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2z"/><path d="M9 7h10M9 11h10M9 15h6"/>
-        </svg>
-        <h3>No articles found</h3>
-        <p>@(string.IsNullOrWhiteSpace(Model.SearchTerm) ? "There are no active news articles at the moment." : $"No results for \"{Model.SearchTerm}\".")</p>
-    </div>
-}
-else
-{
-    <div class="news-grid">
-        @foreach (var article in Model.Articles)
-        {
-            <article class="news-feed-card">
-                <!-- Category -->
-                <span class="card-category">@(article.Category?.CategoryName ?? "Uncategorized")</span>
+<div id="newsGrid" class="news-grid" style="@(Model.Articles.Count == 0 ? "display:none" : "")">
+    @foreach (var article in Model.Articles)
+    {
+        <article class="news-feed-card" data-id="@article.NewsArticleID">
+            <!-- Category -->
+            <span class="card-category">@(article.Category?.CategoryName ?? "Uncategorized")</span>
 
-                <!-- Title -->
-                <a class="card-title" asp-page="/News/Details" asp-route-id="@article.NewsArticleID">
-                    @article.NewsTitle
-                </a>
+            <!-- Title -->
+            <a class="card-title" asp-page="/News/Details" asp-route-id="@article.NewsArticleID">
+                @article.NewsTitle
+            </a>
 
-                <!-- Headline -->
-                <p class="card-headline">@article.Headline</p>
+            <!-- Headline -->
+            <p class="card-headline">@article.Headline</p>
 
-                <!-- Tags -->
-                @{
-                    var tags = article.NewsTags.Where(nt => nt.Tag != null).ToList();
-                }
-                @if (tags.Any())
+            <!-- Tags -->
+            @{
+                var tags = article.NewsTags.Where(nt => nt.Tag != null).ToList();
+            }
+            @if (tags.Any())
+            {
+                <div class="card-tags">
+                    @foreach (var nt in tags)
+                    {
+                        <span class="card-tag">@nt.Tag!.TagName</span>
+                    }
+                </div>
+            }
+
+            <!-- Meta info -->
+            <div class="card-meta">
+                <span class="card-meta-item">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    @article.CreatedDate?.ToString("dd/MM/yyyy HH:mm")
+                </span>
+                @if (!string.IsNullOrWhiteSpace(article.NewsSource))
                 {
-                    <div class="card-tags">
-                        @foreach (var nt in tags)
-                        {
-                            <span class="card-tag">@nt.Tag!.TagName</span>
-                        }
-                    </div>
+                    <span class="card-meta-item">
+                        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                        </svg>
+                        @article.NewsSource
+                    </span>
                 }
+            </div>
 
-                <!-- Meta info -->
+            <!-- Read more -->
+            <a class="card-read-more" asp-page="/News/Details" asp-route-id="@article.NewsArticleID">
+                Read more
+                <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                    <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
+                </svg>
+            </a>
+        </article>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/newsHubClient.js" asp-append-version="true"></script>
+    <script>
+    (() => {
+        if (!window.newsHub) return;
+
+        const esc = s => (s ?? '').toString()
+            .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+
+        function buildCard(p) {
+            const tags = (p.tagNames && p.tagNames.length)
+                ? p.tagNames.map(t => `<span class="card-tag">${esc(t)}</span>`).join('')
+                : '';
+            const tagsHtml = tags ? `<div class="card-tags">${tags}</div>` : '';
+            const sourceHtml = p.source ? `
+                <span class="card-meta-item">
+                    <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
+                    </svg>
+                    ${esc(p.source)}
+                </span>` : '';
+
+            return `
+            <article class="news-feed-card" data-id="${esc(p.id)}" style="animation:fadeIn .3s ease">
+                <span class="card-category">${esc(p.category)}</span>
+                <a class="card-title" href="/News/Details/${encodeURIComponent(p.id)}">${esc(p.title)}</a>
+                <p class="card-headline">${esc(p.headline)}</p>
+                ${tagsHtml}
                 <div class="card-meta">
                     <span class="card-meta-item">
                         <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                         </svg>
-                        @article.CreatedDate?.ToString("dd/MM/yyyy HH:mm")
+                        ${esc(p.created)}
                     </span>
-                    @if (!string.IsNullOrWhiteSpace(article.NewsSource))
-                    {
-                        <span class="card-meta-item">
-                            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
-                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
-                                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                            </svg>
-                            @article.NewsSource
-                        </span>
-                    }
+                    ${sourceHtml}
                 </div>
-
-                <!-- Read more -->
-                <a class="card-read-more" asp-page="/News/Details" asp-route-id="@article.NewsArticleID">
+                <a class="card-read-more" href="/News/Details/${encodeURIComponent(p.id)}">
                     Read more
                     <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
                         <line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/>
                     </svg>
                 </a>
-            </article>
+            </article>`;
         }
-    </div>
+
+        function showToast(msg) {
+            const el = document.getElementById('guestRealtimeToast');
+            if (!el || !window.bootstrap) return;
+            el.querySelector('.toast-body').textContent = msg;
+            bootstrap.Toast.getOrCreateInstance(el, { delay: 3000 }).show();
+        }
+
+        function syncEmptyState() {
+            const grid = document.getElementById('newsGrid');
+            const empty = document.getElementById('emptyState');
+            if (!grid || !empty) return;
+            const hasCards = grid.querySelectorAll('article[data-id]').length > 0;
+            grid.style.display = hasCards ? '' : 'none';
+            empty.style.display = hasCards ? 'none' : '';
+        }
+
+        window.newsHub.subscribe(payload => {
+            const grid = document.getElementById('newsGrid');
+            if (!grid) return;
+
+            const existing = grid.querySelector(`article[data-id="${payload.id}"]`);
+
+            if (payload.action === 'deleted') {
+                if (existing) { existing.remove(); showToast('An article has been removed.'); }
+            } else if (payload.status) {
+                // active article — add or update
+                if (existing) {
+                    existing.outerHTML = buildCard(payload);
+                    showToast('An article has been updated.');
+                } else {
+                    grid.insertAdjacentHTML('afterbegin', buildCard(payload));
+                    showToast('A new article has been published!');
+                }
+            } else {
+                // article turned inactive — remove from guest view
+                if (existing) { existing.remove(); showToast('An article has been updated.'); }
+            }
+
+            syncEmptyState();
+        });
+
+        // Add fade-in keyframe once
+        if (!document.getElementById('guestRealtimeStyle')) {
+            const s = document.createElement('style');
+            s.id = 'guestRealtimeStyle';
+            s.textContent = '@@keyframes fadeIn { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }';
+            document.head.appendChild(s);
+        }
+
+        // Fallback for an unavailable SignalR connection. It remains active
+        // while searching too, so a guest never needs to submit Search or F5.
+        {
+            setInterval(async () => {
+                try {
+                    const resp = await fetch(window.location.pathname + '?handler=Articles', {
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    });
+                    if (!resp.ok) return;
+                    const articles = await resp.json();
+                    if (!Array.isArray(articles)) return;
+
+                    const grid = document.getElementById('newsGrid');
+                    if (!grid) return;
+
+                    // Add new articles that aren't in the grid yet
+                    articles.forEach(p => {
+                        const exists = grid.querySelector(`article[data-id="${esc(p.id)}"]`);
+                        if (!exists && p.status) {
+                            grid.insertAdjacentHTML('afterbegin', buildCard(p));
+                        }
+                    });
+
+                    // Remove articles no longer in list
+                    grid.querySelectorAll('article[data-id]').forEach(card => {
+                        const id = card.dataset.id;
+                        const stillExists = articles.some(a => a.id === id && a.status);
+                        if (!stillExists) card.remove();
+                    });
+
+                    syncEmptyState();
+                } catch (e) { /* silent fail */ }
+            }, 3000);
+        }
+    })();
+    </script>
 }

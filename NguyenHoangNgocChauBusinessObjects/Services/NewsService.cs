@@ -100,7 +100,8 @@ public class NewsService : INewsService
         }
 
         await _articles.SaveAsync();
-        await BroadcastAsync(isNew ? "created" : "updated", article.NewsArticleID);
+        try { await BroadcastAsync(isNew ? "created" : "updated", article.NewsArticleID); }
+        catch (Exception ex) { Console.Error.WriteLine($"[SignalR] BroadcastAsync failed: {ex.Message}"); }
     }
 
     public async Task<bool> DeleteAsync(string id)
@@ -118,7 +119,8 @@ public class NewsService : INewsService
         _articles.Delete(article);
         await _articles.SaveAsync();
 
-        await _hub.Clients.All.SendAsync("NewsChanged", new NewsRealtimeDto { Action = "deleted", Id = id });
+        try { await _hub.Clients.All.SendAsync("NewsChanged", new NewsRealtimeDto { Action = "deleted", Id = id }); }
+        catch (Exception ex) { Console.Error.WriteLine($"[SignalR] Delete broadcast failed: {ex.Message}"); }
         return true;
     }
 
@@ -141,8 +143,13 @@ public class NewsService : INewsService
 
     private async Task BroadcastAsync(string action, string id)
     {
-        var a = await IncludeDetails(_articles.Query()).FirstAsync(n => n.NewsArticleID == id);
-        await _hub.Clients.All.SendAsync("NewsChanged", new NewsRealtimeDto
+        await _hub.Clients.All.SendAsync("NewsChanged", await CreateRealtimeDtoAsync(action, id));
+    }
+
+    private async Task<NewsRealtimeDto> CreateRealtimeDtoAsync(string action, string id)
+    {
+        var a = await IncludeDetails(_articles.Query().AsNoTracking()).FirstAsync(n => n.NewsArticleID == id);
+        return new NewsRealtimeDto
         {
             Action = action,
             Id = a.NewsArticleID,
@@ -157,7 +164,7 @@ public class NewsService : INewsService
             StateId = a.ArticleStateID,
             Tags = string.Join(',', a.NewsTags.Select(t => t.TagID)),
             TagNames = a.NewsTags.Where(t => t.Tag != null).Select(t => t.Tag!.TagName).ToList()
-        });
+        };
     }
 
     private IQueryable<NewsArticle> IncludeDetails(IQueryable<NewsArticle> query)

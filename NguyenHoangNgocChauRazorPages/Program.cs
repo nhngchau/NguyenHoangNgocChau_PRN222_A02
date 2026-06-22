@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.EntityFrameworkCore;
 using NguyenHoangNgocChauRazorPages.DAO;
 using NguyenHoangNgocChauRazorPages.Data;
@@ -9,6 +10,11 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddRazorPages();
 builder.Services.AddSignalR();
+// Keep the encryption keys stable when the development server restarts. Without
+// this, a restart invalidates the session cookie and sends a logged-in staff
+// member back to the login page on the next request.
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo(Path.Combine(builder.Environment.ContentRootPath, "DataProtectionKeys")));
 builder.Services.AddDbContext<FUNewsDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 builder.Services.Configure<AdminAccountOptions>(builder.Configuration.GetSection("AdminAccount"));
@@ -49,6 +55,8 @@ app.UseRouting();
 app.UseSession();
 app.UseAuthorization();
 app.MapRazorPages();
+// The public news feed is allowed to connect too, so it can receive updates
+// without requiring a page refresh.
 app.MapHub<NewsHub>("/newsHub");
 
 app.Run();

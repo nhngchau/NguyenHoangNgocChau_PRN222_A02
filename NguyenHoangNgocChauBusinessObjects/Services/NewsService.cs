@@ -1,5 +1,6 @@
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using NguyenHoangNgocChauRazorPages.Data;
+using NguyenHoangNgocChauRazorPages.Hubs;
 using NguyenHoangNgocChauRazorPages.Models;
 using NguyenHoangNgocChauRazorPages.Models.ViewModels;
 using NguyenHoangNgocChauRazorPages.Repositories;
@@ -8,13 +9,15 @@ namespace NguyenHoangNgocChauRazorPages.Services;
 
 public class NewsService : INewsService
 {
-    private readonly FUNewsDbContext _context;
     private readonly IRepository<NewsArticle> _articles;
+    private readonly IRepository<NewsTag> _newsTags;
+    private readonly IHubContext<NewsHub> _hub;
 
-    public NewsService(FUNewsDbContext context, IRepository<NewsArticle> articles)
+    public NewsService(IRepository<NewsArticle> articles, IRepository<NewsTag> newsTags, IHubContext<NewsHub> hub)
     {
-        _context = context;
         _articles = articles;
+        _newsTags = newsTags;
+        _hub = hub;
     }
 
     public Task<List<NewsArticle>> SearchAsync(string? keyword, bool activeOnly = false, int? createdById = null, int? categoryId = null, int? tagId = null)
@@ -22,7 +25,6 @@ public class NewsService : INewsService
         var query = IncludeDetails(_articles.Query());
         if (activeOnly)
         {
-            var now = DateTime.Now;
             query = query.Where(n => n.NewsStatus == true);
         }
         if (createdById.HasValue)
@@ -65,8 +67,9 @@ public class NewsService : INewsService
 
     public async Task SaveAsync(ArticleViewModel model, int staffId)
     {
+        var isNew = string.IsNullOrWhiteSpace(model.NewsArticleID);
         NewsArticle article;
-        if (string.IsNullOrWhiteSpace(model.NewsArticleID))
+        if (isNew)
         {
             article = new NewsArticle
             {
@@ -78,7 +81,7 @@ public class NewsService : INewsService
         }
         else
         {
-            article = await _context.NewsArticles.Include(n => n.NewsTags).FirstAsync(n => n.NewsArticleID == model.NewsArticleID);
+            article = await _articles.Query().Include(n => n.NewsTags).FirstAsync(n => n.NewsArticleID == model.NewsArticleID);
             article.UpdatedByID = checked((short)staffId);
             article.ModifiedDate = DateTime.Now;
             article.NewsTags.Clear();
@@ -96,26 +99,32 @@ public class NewsService : INewsService
             article.NewsTags.Add(new NewsTag { NewsArticleID = article.NewsArticleID, TagID = tagId });
         }
 
-        await _context.SaveChangesAsync();
+        await _articles.SaveAsync();
+        await BroadcastAsync(isNew ? "created" : "updated", article.NewsArticleID);
     }
 
     public async Task<bool> DeleteAsync(string id)
     {
-        var article = await _context.NewsArticles.Include(n => n.NewsTags).FirstOrDefaultAsync(n => n.NewsArticleID == id);
+        var article = await _articles.Query().Include(n => n.NewsTags).FirstOrDefaultAsync(n => n.NewsArticleID == id);
         if (article == null)
         {
             return false;
         }
 
-        _context.NewsTags.RemoveRange(article.NewsTags);
-        _context.NewsArticles.Remove(article);
-        await _context.SaveChangesAsync();
+        foreach (var tag in article.NewsTags.ToList())
+        {
+            _newsTags.Delete(tag);
+        }
+        _articles.Delete(article);
+        await _articles.SaveAsync();
+
+        await _hub.Clients.All.SendAsync("NewsChanged", new NewsRealtimeDto { Action = "deleted", Id = id });
         return true;
     }
 
     public async Task<bool> ToggleStatusAsync(string id, int staffId)
     {
-        var article = await _context.NewsArticles.FirstOrDefaultAsync(n => n.NewsArticleID == id);
+        var article = await _articles.Query().FirstOrDefaultAsync(n => n.NewsArticleID == id);
         if (article == null)
         {
             return false;
@@ -124,8 +133,31 @@ public class NewsService : INewsService
         article.NewsStatus = !article.NewsStatus;
         article.UpdatedByID = checked((short)staffId);
         article.ModifiedDate = DateTime.Now;
-        await _context.SaveChangesAsync();
+        await _articles.SaveAsync();
+
+        await BroadcastAsync("updated", id);
         return true;
+    }
+
+    private async Task BroadcastAsync(string action, string id)
+    {
+        var a = await IncludeDetails(_articles.Query()).FirstAsync(n => n.NewsArticleID == id);
+        await _hub.Clients.All.SendAsync("NewsChanged", new NewsRealtimeDto
+        {
+            Action = action,
+            Id = a.NewsArticleID,
+            Title = a.NewsTitle,
+            Headline = a.Headline,
+            Content = a.NewsContent,
+            Source = a.NewsSource,
+            CategoryId = a.CategoryID.GetValueOrDefault(),
+            Category = a.Category?.CategoryName ?? "N/A",
+            Created = a.CreatedDate?.ToString("dd/MM/yyyy") ?? "",
+            Status = a.NewsStatus == true,
+            StateId = a.ArticleStateID,
+            Tags = string.Join(',', a.NewsTags.Select(t => t.TagID)),
+            TagNames = a.NewsTags.Where(t => t.Tag != null).Select(t => t.Tag!.TagName).ToList()
+        });
     }
 
     private IQueryable<NewsArticle> IncludeDetails(IQueryable<NewsArticle> query)
@@ -139,14 +171,14 @@ public class NewsService : INewsService
 
     private async Task<string> NextIdAsync()
     {
-        var count = await _context.NewsArticles.CountAsync() + 1;
+        var count = await _articles.Query().CountAsync() + 1;
         string id;
         do
         {
             id = $"N{count:000000000}";
             count++;
         }
-        while (await _context.NewsArticles.AnyAsync(n => n.NewsArticleID == id));
+        while (await _articles.Query().AnyAsync(n => n.NewsArticleID == id));
 
         return id;
     }

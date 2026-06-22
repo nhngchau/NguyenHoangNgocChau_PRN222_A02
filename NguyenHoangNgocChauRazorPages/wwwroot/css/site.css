@@ -162,3 +162,66 @@ tbody tr:hover td { background: #f9fafb; }
     .search-form { flex-wrap: wrap; }
     dl { grid-template-columns: 1fr; }
 }
+
+/* ═══════════════════════════════════════════════════
+   Staff Dashboard Shell — shared across ALL Staff pages
+   (col-lg-3 sidebar + col-lg-9 main with analytics cards)
+═══════════════════════════════════════════════════ */
+.staff-shell { align-items: flex-start; }
+
+/* ── Sticky Sidebar ── */
+.staff-sidebar { position: sticky; top: 80px; }
+
+.staff-sidebar .side-card {
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    padding: 0.6rem;
+}
+
+.staff-sidebar .side-title {
+    font-size: 0.68rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #9ca3af;
+    padding: 0.5rem 0.75rem 0.4rem;
+}
+
+.staff-sidebar .side-nav a {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    padding: 0.6rem 0.75rem;
+    border-radius: 9px;
+    color: #374151;
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: background 0.15s, color 0.15s;
+}
+
+.staff-sidebar .side-nav a svg { width: 17px; height: 17px; flex-shrink: 0; opacity: 0.7; }
+.staff-sidebar .side-nav a:hover { background: #f3f4f6; color: #111827; }
+.staff-sidebar .side-nav a.active { background: #eff6ff; color: #1d4ed8; }
+.staff-sidebar .side-nav a.active svg { opacity: 1; }
+
+/* ── Analytics Summary Cards ── */
+.stat-card { border-radius: 14px; transition: transform 0.15s, box-shadow 0.15s; }
+.stat-card:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(0,0,0,0.08) !important; }
+.stat-card .card-body { padding: 1.1rem 1.25rem; }
+.stat-icon {
+    width: 48px; height: 48px;
+    border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+}
+.stat-icon svg { width: 22px; height: 22px; }
+.stat-value { font-size: 1.6rem; font-weight: 700; color: #0d2b4e; line-height: 1; }
+.stat-label { font-size: 0.8rem; color: #6b7280; font-weight: 500; margin-top: 0.3rem; }
+
+/* On smaller screens the sidebar stacks above the content */
+@media (max-width: 991.98px) {
+    .staff-sidebar { position: static; margin-bottom: 0.5rem; }
+}

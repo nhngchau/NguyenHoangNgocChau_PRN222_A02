@@ -1,7 +1,10 @@
 @page
 @model NguyenHoangNgocChauRazorPages.Pages.Staff.History.IndexModel
-@{ ViewData["Title"] = "My News History"; }
-<h1>My News History</h1>
+@{
+    ViewData["Title"] = "My News History";
+    Layout = "_StaffLayout";
+}
+<h1 class="h4 fw-bold mb-3" style="color:#0d2b4e">My News History</h1>
 <form method="get" class="row g-2 mb-3"><div class="col-sm-5"><input asp-for="SearchTerm" class="form-control" placeholder="Search title, headline or content" /></div><div class="col-auto"><button class="btn btn-outline-primary">Search</button></div><div class="col-auto"><a asp-page="/Staff/History/Index" class="btn btn-outline-secondary">Clear</a></div></form>
 <div class="table-responsive"><table class="table table-striped"><thead><tr><th>ID</th><th>Title</th><th>Category</th><th>Created Date</th><th>Status</th></tr></thead><tbody>
 @foreach(var article in Model.Articles){<tr><td>@article.NewsArticleID</td><td>@article.NewsTitle</td><td>@(article.Category?.CategoryName??"N/A")</td><td>@article.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</td><td><span class="badge @(article.NewsStatus == true?"text-bg-success":"text-bg-secondary")">@(article.NewsStatus == true?"Active":"Inactive")</span></td></tr>}

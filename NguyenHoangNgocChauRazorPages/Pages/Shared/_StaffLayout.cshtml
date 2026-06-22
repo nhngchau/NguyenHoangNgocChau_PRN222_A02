@@ -1,0 +1,30 @@
+@{
+    Layout = "_Layout";
+}
+
+<div class="row g-4 staff-shell">
+
+    <!-- ══════════ Sidebar (col-lg-3) — identical on every Staff page ══════════ -->
+    <div class="col-lg-3">
+        <partial name="_StaffSidebar" />
+    </div>
+
+    <!-- ══════════ Main content (col-lg-9) ══════════ -->
+    <div class="col-lg-9">
+        <!-- Shared analytics summary cards -->
+        <div class="staff-stats mb-4">
+            @await Component.InvokeAsync("StaffStats")
+        </div>
+
+        <!-- Page-specific content -->
+        @RenderBody()
+    </div>
+</div>
+
+@* Forward page sections up to the root _Layout *@
+@section Styles {
+    @await RenderSectionAsync("Styles", required: false)
+}
+@section Scripts {
+    @await RenderSectionAsync("Scripts", required: false)
+}

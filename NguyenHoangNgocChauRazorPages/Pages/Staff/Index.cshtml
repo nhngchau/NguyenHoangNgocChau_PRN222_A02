@@ -1,5 +1,13 @@
 @page
 @model NguyenHoangNgocChauRazorPages.Pages.Staff.IndexModel
-@{ ViewData["Title"] = "Staff Dashboard"; }
-<h1>Staff Dashboard</h1>
-<p>News, Category, Profile and History pages will be implemented in the next steps.</p>
+@{
+    ViewData["Title"] = "Staff Dashboard";
+    Layout = "_StaffLayout";
+}
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body p-4">
+        <h1 class="h4 fw-bold mb-1" style="color:#0d2b4e">Welcome back 👋</h1>
+        <p class="text-muted mb-0">Use the sidebar to manage News Articles, Categories, your Profile, and review your publishing History.</p>
+    </div>
+</div>

@@ -1,7 +1,10 @@
 @page
 @model NguyenHoangNgocChauRazorPages.Pages.Staff.Profile.IndexModel
-@{ ViewData["Title"] = "My Profile"; }
-<h1>My Profile</h1>
+@{
+    ViewData["Title"] = "My Profile";
+    Layout = "_StaffLayout";
+}
+<h1 class="h4 fw-bold mb-3" style="color:#0d2b4e">My Profile</h1>
 @if (TempData["Success"] is string success) { <div class="alert alert-success">@success</div> }
 <form method="post" class="card card-body col-lg-6">
     <div asp-validation-summary="ModelOnly" class="text-danger"></div>

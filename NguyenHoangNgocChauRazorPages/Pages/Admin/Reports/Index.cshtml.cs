@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using NguyenHoangNgocChauRazorPages.Models;
@@ -7,20 +8,61 @@ namespace NguyenHoangNgocChauRazorPages.Pages.Admin.Reports;
 
 public class IndexModel(INewsService newsService) : PageModel
 {
-    [BindProperty(SupportsGet = true)] public DateTime? StartDate { get; set; }
-    [BindProperty(SupportsGet = true)] public DateTime? EndDate { get; set; }
+    [BindProperty(SupportsGet = true)]
+    [DataType(DataType.Date)]
+    [Display(Name = "Start Date")]
+    public DateTime? StartDate { get; set; }
+
+    [BindProperty(SupportsGet = true)]
+    [DataType(DataType.Date)]
+    [Display(Name = "End Date")]
+    public DateTime? EndDate { get; set; }
+
     public List<NewsArticle> Articles { get; private set; } = [];
-    public bool HasFilter => StartDate.HasValue || EndDate.HasValue;
+
+    // True once a valid period has been submitted and the report produced.
+    public bool Generated { get; private set; }
+
+    // Summary statistics for the selected period.
+    public int TotalCount => Articles.Count;
+    public int ActiveCount => Articles.Count(a => a.NewsStatus == true);
+    public int InactiveCount => TotalCount - ActiveCount;
 
     public async Task<IActionResult> OnGetAsync()
     {
-        if (!HttpContext.Session.IsInRole("Admin")) return RedirectToPage("/Auth/Login");
+        if (!HttpContext.Session.IsInRole("Admin"))
+        {
+            return RedirectToPage("/Auth/Login");
+        }
+
+        // Initial load (no input yet) — just show the empty filter form.
+        if (!StartDate.HasValue && !EndDate.HasValue)
+        {
+            return Page();
+        }
+
+        // A period report requires BOTH dates.
+        if (!StartDate.HasValue)
+        {
+            ModelState.AddModelError(nameof(StartDate), "Please choose a start date.");
+        }
+        if (!EndDate.HasValue)
+        {
+            ModelState.AddModelError(nameof(EndDate), "Please choose an end date.");
+        }
         if (StartDate.HasValue && EndDate.HasValue && StartDate > EndDate)
         {
-            TempData["Error"] = "Start Date must be earlier than or equal to End Date.";
-            return RedirectToPage();
+            ModelState.AddModelError(nameof(EndDate), "End date must be on or after the start date.");
         }
-        if (HasFilter) Articles = await newsService.ReportAsync(StartDate, EndDate);
+
+        if (!ModelState.IsValid)
+        {
+            return Page();
+        }
+
+        // ReportAsync filters by CreatedDate within [StartDate, EndDate] and sorts descending.
+        Articles = await newsService.ReportAsync(StartDate, EndDate);
+        Generated = true;
         return Page();
     }
 }

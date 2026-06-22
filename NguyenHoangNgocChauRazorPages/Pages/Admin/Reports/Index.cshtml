@@ -1,34 +1,211 @@
 @page
 @model NguyenHoangNgocChauRazorPages.Pages.Admin.Reports.IndexModel
-@{ ViewData["Title"] = "News Report"; }
+@{
+    ViewData["Title"] = "News Report";
+}
 
-<h1>News Report</h1>
-@if (TempData["Error"] is string error) { <div class="alert alert-danger">@error</div> }
+@section Styles {
+<style>
+    .report-header {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 1rem; flex-wrap: wrap; margin-bottom: 1.5rem;
+    }
+    .report-title {
+        font-size: 1.5rem; font-weight: 700; color: #0d2b4e; margin: 0;
+        display: flex; align-items: center; gap: 0.55rem;
+    }
+    .report-title svg { color: #2563eb; }
+    .report-subtitle { font-size: 0.875rem; color: #6b7280; margin: 0.25rem 0 0; }
 
-<form method="get" class="row g-3 mb-4">
-    <div class="col-md-3"><label asp-for="StartDate" class="form-label"></label><input asp-for="StartDate" class="form-control" /></div>
-    <div class="col-md-3"><label asp-for="EndDate" class="form-label"></label><input asp-for="EndDate" class="form-control" /></div>
-    <div class="col-auto align-self-end"><button type="submit" class="btn btn-primary">Generate report</button></div>
-</form>
+    .filter-card .form-label {
+        font-size: 0.78rem; font-weight: 700; color: #374151;
+        text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.35rem;
+    }
+    .filter-card .form-control {
+        border: 1.5px solid #e5e7eb; border-radius: 9px; padding: 0.55rem 0.875rem;
+    }
+    .filter-card .form-control:focus {
+        border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+    }
 
-@if (Model.HasFilter)
+    .report-table { font-size: 0.875rem; }
+    .report-table thead th {
+        background: #f8fafc; font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+        letter-spacing: 0.05em; color: #6b7280; border-bottom: 1px solid #e5e7eb;
+        padding: 0.8rem 1rem; white-space: nowrap;
+    }
+    .report-table tbody td { padding: 0.8rem 1rem; border-color: #f3f4f6; }
+    .report-title-cell { font-weight: 600; color: #0d2b4e; }
+    .cat-badge { background: #eff6ff; color: #1d4ed8; border: 1px solid #bfdbfe; font-weight: 500; }
+
+    .report-empty { text-align: center; padding: 3.5rem 2rem; color: #9ca3af; }
+    .report-empty svg { opacity: 0.35; margin-bottom: 1rem; }
+
+    /* Print only the report */
+    @@media print {
+        .fu-navbar, .report-header .btn, .filter-card, .no-print { display: none !important; }
+        .fu-main { background: #fff !important; }
+        .card { box-shadow: none !important; border: 1px solid #e5e7eb !important; }
+    }
+</style>
+}
+
+<!-- Header -->
+<div class="report-header">
+    <div>
+        <h1 class="report-title">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+            News Statistics Report
+        </h1>
+        <p class="report-subtitle">News articles created within a period, sorted from newest to oldest.</p>
+    </div>
+    @if (Model.Generated && Model.TotalCount > 0)
+    {
+        <button type="button" class="btn btn-outline-primary" onclick="window.print()">
+            <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" class="me-1" style="vertical-align:-2px"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Print
+        </button>
+    }
+</div>
+
+<!-- Filter -->
+<div class="card border-0 shadow-sm filter-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-start">
+            <div class="col-md-4">
+                <label asp-for="StartDate" class="form-label"></label>
+                <input asp-for="StartDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                <span asp-validation-for="StartDate" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4">
+                <label asp-for="EndDate" class="form-label"></label>
+                <input asp-for="EndDate" type="date" asp-format="{0:yyyy-MM-dd}" class="form-control" />
+                <span asp-validation-for="EndDate" class="text-danger small"></span>
+            </div>
+            <div class="col-md-4 d-flex gap-2 align-items-end" style="min-height:62px">
+                <button type="submit" class="btn btn-primary px-3">
+                    <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" class="me-1" style="vertical-align:-2px"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                    Generate Report
+                </button>
+                <a asp-page="/Admin/Reports/Index" class="btn btn-light border px-3">Clear</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@if (Model.Generated)
 {
-    <p><strong>Total news: @Model.Articles.Count</strong></p>
-    <div class="table-responsive"><table class="table table-striped align-middle">
-        <thead><tr><th>ID</th><th>Title</th><th>Headline</th><th>Category</th><th>Created Date</th><th>Created By</th><th>Status</th></tr></thead>
-        <tbody>
-        @foreach (var article in Model.Articles)
-        {
-            <tr>
-                <td>@article.NewsArticleID</td><td>@article.NewsTitle</td><td>@article.Headline</td>
-                <td>@(article.Category?.CategoryName ?? "Uncategorized")</td><td>@article.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</td>
-                <td>@(article.CreatedBy?.AccountName ?? "N/A")</td><td>@(article.NewsStatus == true ? "Active" : "Inactive")</td>
-            </tr>
-        }
-        </tbody>
-    </table></div>
+    <!-- Summary cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 0-1.5 2zM9 7h10M9 11h10M9 15h6"/></svg>
+                    </div>
+                    <div>
+                        <div class="stat-value">@Model.TotalCount</div>
+                        <div class="stat-label">Total Articles</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-success bg-opacity-10 text-success">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    </div>
+                    <div>
+                        <div class="stat-value">@Model.ActiveCount</div>
+                        <div class="stat-label">Active</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-4">
+            <div class="card border-0 shadow-sm stat-card h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning">
+                        <svg fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    </div>
+                    <div>
+                        <div class="stat-value">@Model.InactiveCount</div>
+                        <div class="stat-label">Inactive</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Period note -->
+    <p class="text-muted small mb-3">
+        Period: <strong class="text-dark">@Model.StartDate?.ToString("dd/MM/yyyy")</strong>
+        &rarr; <strong class="text-dark">@Model.EndDate?.ToString("dd/MM/yyyy")</strong>
+        · sorted by created date (newest first)
+    </p>
+
+    <!-- Results -->
+    <div class="card border-0 shadow-sm" style="border-radius:14px;overflow:hidden">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle report-table mb-0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Title</th>
+                        <th>Category</th>
+                        <th>Created Date</th>
+                        <th>Created By</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.TotalCount == 0)
+                    {
+                        <tr>
+                            <td colspan="6">
+                                <div class="report-empty">
+                                    <svg width="46" height="46" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>
+                                    <p class="mb-0">No news articles were created in this period.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var article in Model.Articles)
+                    {
+                        <tr>
+                            <td class="text-muted small font-monospace">@article.NewsArticleID</td>
+                            <td>
+                                <div class="report-title-cell">@article.NewsTitle</div>
+                                <div class="text-muted small">@article.Headline</div>
+                            </td>
+                            <td><span class="badge rounded-pill cat-badge">@(article.Category?.CategoryName ?? "N/A")</span></td>
+                            <td class="text-nowrap">@article.CreatedDate?.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@(article.CreatedBy?.AccountName ?? "N/A")</td>
+                            <td>
+                                @if (article.NewsStatus == true)
+                                {
+                                    <span class="badge rounded-pill text-bg-success">Active</span>
+                                }
+                                else
+                                {
+                                    <span class="badge rounded-pill text-bg-warning">Inactive</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 }
 else
 {
-    <p>Select a start date and/or end date to generate the report.</p>
+    <!-- Initial / prompt state -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body report-empty">
+            <svg width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <p class="mb-0">Choose a <strong>start date</strong> and <strong>end date</strong>, then click <strong>Generate Report</strong>.</p>
+        </div>
+    </div>
 }
